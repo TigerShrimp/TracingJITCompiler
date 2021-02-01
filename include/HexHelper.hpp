@@ -6,17 +6,19 @@
 
 typedef unsigned char hexCode;
 
-enum OpType { Reg, Mem, Imm };
+enum OpType { Reg, Mem, Imm, None };
+
+enum Mode { Low, High };
 
 struct Operand {
   OpType type;
   int val;
-  hexCode mode;
+  Mode mode;
 };
 
 enum Mnemonic {
   MOV,
-  ADD
+  ADD,
   // etc...
 };
 
@@ -61,21 +63,32 @@ static const std::regex immReg("^[0-9]+$");
 
 const hexCode calcHex(Operand op) {}
 
-const hexCode getMode(std::string opString) {
-  return regex_match(opString.begin(), opString.end(), lowRegReg) ? 0x48 : 0x4d;
-}
-
-const void addHex(Operand op, std::vector<hexCode>& hexSequence) {
-  switch (op.type) {
-    case ::Imm:
-      // adsadsad;
-      break;
-    default:
-      hexSequence.push_back(calcHex(op));
+const hexCode getMode(Instruction instruction) {
+  hexCode mode = 0;
+  if (instruction.op1.type == Mem) {
+    if (instruction.op2.mode == High) {
+      return 0x4c;
+    }
+    return 0x49;
+  } else if (instruction.op2.type == Mem) {
+    if (instruction.op1.mode == High) {
+      return 0x4c;
+    }
+    return 0x49;
+  } else if (instruction.op1.type == Reg && instruction.op1.mode == Low) {
+    mode = 0x48;
+  } else if (instruction.op1.type == Reg && instruction.op1.mode == High) {
+    mode = 0x49;
   }
+  if (instruction.op2.type == Reg && instruction.op2.mode == High) {
+    mode += 5;
+  }
+  return mode;
 }
 
-const hexCode combine(hexCode dst, hexCode src) {}
+const Mode getMode(std::string opString) {
+  return regex_match(opString.begin(), opString.end(), lowRegReg) ? Low : High;
+}
 
 const OpType getOpType(std::string operand) {
   OpType op;
@@ -99,8 +112,39 @@ const int getOpVal(OpType type, std::string opString) {
       // Japp
       break;
     case Reg:
-      // Japp
-      break;
+      if (opString == "RAX") {
+        return Register::RAX;
+      } else if (opString == "RCX") {
+        return Register::RCX;
+      } else if (opString == "RDX") {
+        return Register::RDX;
+      } else if (opString == "RBX") {
+        return Register::RBX;
+      } else if (opString == "RSP") {
+        return Register::RSP;
+      } else if (opString == "RBP") {
+        return Register::RBP;
+      } else if (opString == "RSI") {
+        return Register::RSI;
+      } else if (opString == "RDI") {
+        return Register::RDI;
+      } else if (opString == "R8") {
+        return Register::R8;
+      } else if (opString == "R9") {
+        return Register::R9;
+      } else if (opString == "R10") {
+        return Register::R10;
+      } else if (opString == "R11") {
+        return Register::R11;
+      } else if (opString == "R12") {
+        return Register::R12;
+      } else if (opString == "R13") {
+        return Register::R13;
+      } else if (opString == "R14") {
+        return Register::R14;
+      } else if (opString == "R15") {
+        return Register::R15;
+      };
   }
 }
 
@@ -109,7 +153,7 @@ const Operand getOp(std::string opString) {
   int v = getOpVal(t, opString);
   Operand op = {t, v};
   if (t == Reg) {
-    hexCode m = getMode(opString);
+    Mode m = getMode(opString);
     op.mode = m;
   }
   return op;

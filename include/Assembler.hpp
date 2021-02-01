@@ -12,6 +12,7 @@ class Assembler {
  private:
  public:
   std::vector<hexCode> assemble(std::vector<std::string>&);
+  std::vector<hexCode> assemble(std::vector<Instruction>&);
 };
 
 #endif  // ASSEMBLER_HPP

@@ -5,7 +5,7 @@ using namespace std;
 
 // Public functions
 vector<hexCode> Assembler::assemble(vector<string> &asmRows) {
-  vector<hexCode> hexCodeStream;
+  vector<Instruction> instructionStream;
   for (auto asmRow : asmRows) {
     transform(asmRow.begin(), asmRow.end(), asmRow.begin(), ::toupper);
     replace(asmRow.begin(), asmRow.end(), ',', ' ');
@@ -17,17 +17,26 @@ vector<hexCode> Assembler::assemble(vector<string> &asmRows) {
         instParts.push_back(part);
       }
     }
-    if (instParts.size() == 3) {
-      OpType op1 = getOpType(instParts[1]);
-      OpType op2 = getOpType(instParts[2]);
+    Instruction instruction = {Hex::getMnemonic(instParts[0]), {None}, {None}};
+    switch (instParts.size()) {
+      case 3:
+        instruction.op2 = Hex::getOp(instParts[2]);
+      case 2:
+        instruction.op1 = Hex::getOp(instParts[1]);
+        break;
+    }
+    instructionStream.push_back(instruction);
+  }
+  return this->assemble(instructionStream);
+}
+
+vector<hexCode> Assembler::assemble(vector<Instruction> &instructionStream) {
+  vector<hexCode> hexStream;
+  for (auto instruction : instructionStream) {
+    hexCode mode = Hex::getMode(instruction);
+    if (mode != 0) {
+      hexStream.push_back(mode);
     }
   }
-  else if (instParts.size() == 2) {
-    cout << instParts[0] << ": " << instParts[1] << std::endl;
-  }
-  else {
-    cout << instParts[0] << std::endl;
-  }
-}
-return hexCodeStream;
+  return hexStream;
 }
