@@ -6,10 +6,13 @@ using namespace asmjit;
 // Private functions
 
 // Public functions
-void Assembler::assemble(vector<string>& asmRows) {
-  JitRuntime runtime;
+vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
+  using namespace x86;
+  Environment env;
+  env.setArch(Environment::kArchX64);
+
   CodeHolder codeHolder;
-  codeHolder.init(runtime.environment());
+  codeHolder.init(env);
   x86::Assembler asmAssembler(&codeHolder);
 
   for (auto asmRow : asmRows) {
@@ -34,42 +37,30 @@ void Assembler::assemble(vector<string>& asmRows) {
         break;
     }
     string mnemonic = instParts[0];
-    x86::Inst::Id inst;
+    x86::Inst::Id inst = lookupMnemonics.at(mnemonic);
 
-    if (mnemonic == "MOV") {
-      inst = x86::Inst::kIdMov;
-    } else if (mnemonic == "ADD") {
-      inst = x86::Inst::kIdAdd;
-    } else if (mnemonic == "ENTER") {
-      inst = x86::Inst::kIdEnter;
-    } else if (mnemonic == "LEAVE") {
-      inst = x86::Inst::kIdLeave;
-    } else if (mnemonic == "RET") {
-      inst = x86::Inst::kIdRet;
-    }
-
+    Error err;
     switch (operands) {
       case 2:
-        asmAssembler.emit(inst, op1, op2);
+        err = asmAssembler.emit(inst, op1, op2);
         break;
       case 1:
-        asmAssembler.emit(inst, op1);
+        err = asmAssembler.emit(inst, op1);
         break;
       default:
-        asmAssembler.emit(inst);
+        err = asmAssembler.emit(inst);
         break;
     }
+    if (err) {
+      perror("Emit error");
+      cout << "Compilen't" << endl;
+      exit(EXIT_FAILURE);
+    }
   }
-  Func fn;
-  Error err = runtime.add(&fn, &codeHolder);
-  if (err) {
-    cout << "Compilen't";
-    perror("");
-    exit(EXIT_FAILURE);
-  }
-  int res = fn();
-  cout << "Res: " << res << endl;
-  runtime.release(fn);
+  CodeBuffer& buffer = codeHolder.textSection()->buffer();
+  vector<uint8_t> bytes(buffer.data(), buffer.data() + buffer.size());
+
+  return bytes;
 }
 
 static const ArgumentType getArgumentType(string argument) {
@@ -86,56 +77,20 @@ static const ArgumentType getArgumentType(string argument) {
   return arg;
 }
 
-static const x86::Gp getReg(std::string regString) {
-  if (regString == "RAX") {
-    return x86::rax;
-  } else if (regString == "RCX") {
-    return x86::rcx;
-  } else if (regString == "RDX") {
-    return x86::rdx;
-  } else if (regString == "RBX") {
-    return x86::rbx;
-  } else if (regString == "RSP") {
-    return x86::rsp;
-  } else if (regString == "RBP") {
-    return x86::rbp;
-  } else if (regString == "RSI") {
-    return x86::rsi;
-  } else if (regString == "RDI") {
-    return x86::rdi;
-  } else if (regString == "R8") {
-    return x86::r8;
-  } else if (regString == "R9") {
-    return x86::r9;
-  } else if (regString == "R10") {
-    return x86::r10;
-  } else if (regString == "R11") {
-    return x86::r11;
-  } else if (regString == "R12") {
-    return x86::r12;
-  } else if (regString == "R13") {
-    return x86::r13;
-  } else if (regString == "R14") {
-    return x86::r14;
-  } else {  // R15
-    return x86::r15;
-  }
-}
-
 static const Argument getArgument(string argString) {
   ArgumentType t = getArgumentType(argString);
   Argument arg = {t, argString};
   return arg;
 }
 
-static const Operand convert(Argument arg) {
+static const asmjit::Operand convert(Argument arg) {
   switch (arg.type) {
     case ArgumentType::Reg: {
-      x86::Gp reg = getReg(arg.val);
+      asmjit::x86::Gp reg = lookupRegisters.at(arg.val);
       return reg;
     }
     case ArgumentType::Mem: {
-      x86::Mem mem = x86::ptr(x86::rbp, 8);
+      asmjit::x86::Mem mem = asmjit::x86::ptr(asmjit::x86::rbp, 8);
       return mem;
     }
     case ArgumentType::Imm: {

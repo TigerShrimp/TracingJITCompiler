@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Assembler.hpp"
+#include "MemoryHandler.hpp"
 
 using namespace std;
 
@@ -12,12 +13,16 @@ void readFile(string, vector<string>&);
 
 int main() {
   vector<string> asmRows;
-  readFile("asm.asm", asmRows);
+  readFile("../asm.asm", asmRows);
   for (auto row : asmRows) {
     cout << row << endl;
   }
   Assembler assembler;
-  assembler.assemble(asmRows);
+  vector<uint8_t> traceBytes = assembler.assemble(asmRows);
+  MemoryHandler memoryHandler;
+  tracePointer tp = memoryHandler.writeTrace(traceBytes);
+  size_t res = tp.execute();
+  cout << "Res " << res << endl;
 }
 
 void readFile(string path, vector<string>& rows) {

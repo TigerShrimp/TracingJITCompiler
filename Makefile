@@ -1,14 +1,14 @@
 all: build/Makefile
-	cd build && make
+	@cd build && make
 
-build/Makefile: build
-	cd build && cmake ..
+build/Makefile: | build
+	@cd build && cmake ..
 
 build:
-	mkdir build
+	@mkdir build
 
 clean:
-	cd build && make clean
+	@cd build && make clean
 
 clean_all:
-	rm -rf build
+	@rm -rf build
