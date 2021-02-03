@@ -27,6 +27,7 @@ struct Argument {
 class Assembler {
  private:
  public:
+  // Assembles lines of x86_64 instruction strings
   std::vector<uint8_t> assemble(std::vector<std::string>&);
 };
 

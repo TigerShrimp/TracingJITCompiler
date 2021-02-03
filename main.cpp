@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Assembler.hpp"
+#include "JVM/Parser.hpp"
 #include "MemoryHandler.hpp"
 
 using namespace std;
@@ -19,7 +20,8 @@ void printError(string error, bool showUsage) {
 }
 
 void interpretJava(string path) {
-  printError("class file not supported yet", false);
+  Parser parser;
+  parser.parse(path);
 }
 
 void assembleAssembly(string path) {

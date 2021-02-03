@@ -1,0 +1,250 @@
+#ifndef JMM_CLASS_FILE_HPP
+#define JMM_CLASS_FILE_HPP
+#include <string>
+#include <vector>
+
+// cp_info {
+//   u1 tag;
+//   u1 info[];
+// }
+struct CPInfo {
+ public:
+  virtual std::string info() = 0;
+};
+
+// CONSTANT_Class_info {
+//     u1 tag;
+//     u2 name_index;
+// }
+struct ConstantClass : public CPInfo {
+ public:
+  static const uint8_t tagValue = 7;
+  uint16_t nameIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Fieldref_info {
+//     u1 tag;
+//     u2 class_index;
+//     u2 name_and_type_index;
+// }
+struct ConstantFieldRef : public CPInfo {
+ public:
+  static const uint8_t tagValue = 9;
+  uint16_t classIndex;
+  uint16_t nameAndTypeIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Methodref_info {
+//     u1 tag;
+//     u2 class_index;
+//     u2 name_and_type_index;
+// }
+struct ConstantMethodRef : public CPInfo {
+ public:
+  static const uint8_t tagValue = 10;
+  uint16_t classIndex;
+  uint16_t nameAndTypeIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_InterfaceMethodref_info {
+//     u1 tag;
+//     u2 class_index;
+//     u2 name_and_type_index;
+// }
+struct ConstantInterfaceMethodRef : public CPInfo {
+ public:
+  static const uint8_t tagValue = 11;
+  uint16_t classIndex;
+  uint16_t nameAndTypeIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_String_info {
+//     u1 tag;
+//     u2 string_index;
+// }
+struct ConstantString : public CPInfo {
+ public:
+  static const uint8_t tagValue = 8;
+  uint16_t stringIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Integer_info {
+//     u1 tag;
+//     u4 bytes;
+// }
+struct ConstantInteger : public CPInfo {
+ public:
+  static const uint8_t tagValue = 3;
+  uint32_t bytes;
+  virtual std::string info() override;
+};
+// CONSTANT_Float_info {
+//     u1 tag;
+//     u4 bytes;
+// }
+struct ConstantFloat : public CPInfo {
+ public:
+  static const uint8_t tagValue = 4;
+  uint32_t bytes;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Long_info {
+//     u1 tag;
+//     u4 high_bytes;
+//     u4 low_bytes;
+// }
+struct ConstantLong : public CPInfo {
+ public:
+  static const uint8_t tagValue = 5;
+  uint32_t highBytes;
+  uint32_t lowBytes;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Double_info {
+//     u1 tag;
+//     u4 high_bytes;
+//     u4 low_bytes;
+// }
+struct ConstantDouble : public CPInfo {
+ public:
+  static const uint8_t tagValue = 6;
+  uint32_t highBytes;
+  uint32_t lowBytes;
+  virtual std::string info() override;
+};
+
+// CONSTANT_NameAndType_info {
+//     u1 tag;
+//     u2 name_index;
+//     u2 descriptor_index;
+// }
+struct ConstantNameAndType : public CPInfo {
+ public:
+  static const uint8_t tagValue = 12;
+  uint16_t nameIndex;
+  uint16_t descriptorIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_Utf8_info {
+//     u1 tag;
+//     u2 length;
+//     u1 bytes[length];
+// }
+struct ConstantUtf8 : public CPInfo {
+ public:
+  static const uint8_t tagValue = 1;
+  uint16_t length;
+  std::string bytes;
+  virtual std::string info() override;
+};
+
+// CONSTANT_MethodHandle_info {
+//     u1 tag;
+//     u1 reference_kind;
+//     u2 reference_index;
+// }
+struct ConstantMethodHandle : public CPInfo {
+ public:
+  static const uint8_t tagValue = 15;
+  uint8_t referenceKind;
+  uint16_t referenceIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_MethodType_info {
+//     u1 tag;
+//     u2 descriptor_index;
+// }
+struct ConstantMethodType : public CPInfo {
+ public:
+  static const uint8_t tagValue = 16;
+  uint16_t descriptorIndex;
+  virtual std::string info() override;
+};
+
+// CONSTANT_InvokeDynamic_info {
+//     u1 tag;
+//     u2 bootstrap_method_attr_index;
+//     u2 name_and_type_index;
+// }
+struct ConstantInvokeDynamic : public CPInfo {
+ public:
+  static const uint8_t tagValue = 18;
+  uint16_t bootstrapMethodAttrIndex;
+  uint16_t nameAndTypeIndex;
+  virtual std::string info() override;
+};
+
+// attribute_info {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u1 info[attribute_length];
+// }
+struct AttributeInfo {
+  uint16_t attributeNameIndex;
+};
+
+// field_info {
+//     u2             access_flags;
+//     u2             name_index;
+//     u2             descriptor_index;
+//     u2             attributes_count;
+//     attribute_info attributes[attributes_count];
+// }
+struct FieldInfo {};
+
+// method_info {
+//     u2             access_flags;
+//     u2             name_index;
+//     u2             descriptor_index;
+//     u2             attributes_count;
+//     attribute_info attributes[attributes_count];
+// }
+struct MethodInfo {};
+
+// ClassFile {
+//     u4             magic;
+//     u2             minor_version;
+//     u2             major_version;
+//     u2             constant_pool_count;
+//     cp_info        constant_pool[constant_pool_count-1];
+//     u2             access_flags;
+//     u2             this_class;
+//     u2             super_class;
+//     u2             interfaces_count;
+//     u2             interfaces[interfaces_count];
+//     u2             fields_count;
+//     field_info     fields[fields_count];
+//     u2             methods_count;
+//     method_info    methods[methods_count];
+//     u2             attributes_count;
+//     attribute_info attributes[attributes_count];
+// }
+struct ClassFile {
+  uint32_t magic;
+  uint16_t minorVersion;
+  uint16_t majorVersion;
+  //   uint16_t constant_pool_count;
+  std::vector<CPInfo*> constantPool;
+  uint16_t accessFlags;
+  uint16_t thisClass;
+  uint16_t superClass;
+  //   uint16_t interfacesCount;
+  std::vector<uint16_t> interfaces;
+  //   uint16_t fields_count;
+  std::vector<FieldInfo> fields;
+  //   uint16_t methods_count;
+  std::vector<MethodInfo> methods;
+  //   uint16_t attributes_count;
+  std::vector<AttributeInfo> attributes;
+};
+
+#endif  // JMM_CLASS_FILE_HPP

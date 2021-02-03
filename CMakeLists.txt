@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.19.0)
 set (CMAKE_CXX_STANDARD 17)
 project(TigerShrimp)
 
-include_directories(include)
+include_directories(include include/JVM)
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/JVM/*.cpp")
 
 # Tell asmjit that it will be embedded.
 Set(ASMJIT_EMBED TRUE)
