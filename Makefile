@@ -1,8 +1,8 @@
 all: build/Makefile
-	@cd build && make
+	@cmake --build build --parallel
 
 build/Makefile: | build
-	@cd build && cmake ..
+	@cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 build:
 	@mkdir build

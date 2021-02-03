@@ -11,9 +11,20 @@ using namespace std;
 
 void readFile(string, vector<string>&);
 
-int main() {
+void printUsage() { cout << "Usage: TigerShrimp file.asm|.class" << endl; }
+
+void printError(string error, bool showUsage) {
+  cout << "TigerShrimp:\033[1;31m error: \033[0m" << error << endl;
+  if (showUsage) printUsage();
+}
+
+void interpretJava(string path) {
+  printError("class file not supported yet", false);
+}
+
+void assembleAssembly(string path) {
   vector<string> asmRows;
-  readFile("../asm.asm", asmRows);
+  readFile(path, asmRows);
   for (auto row : asmRows) {
     cout << row << endl;
   }
@@ -23,6 +34,29 @@ int main() {
   tracePointer tp = memoryHandler.writeTrace(traceBytes);
   size_t res = tp.execute();
   cout << "Res " << res << endl;
+}
+
+int main(int argc, char** args) {
+  switch (argc) {
+    case 1:
+      printUsage();
+      exit(EXIT_FAILURE);
+      break;
+    case 2: {
+      string path(args[1]);
+      string extension = path.substr(path.find_last_of(".") + 1);
+      if (extension == "class") {
+        interpretJava(path);
+      } else if (extension == "asm") {
+        assembleAssembly(path);
+      }
+      break;
+    }
+    default:
+      printError("too many arguments", true);
+      exit(EXIT_FAILURE);
+      break;
+  }
 }
 
 void readFile(string path, vector<string>& rows) {

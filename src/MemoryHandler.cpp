@@ -29,6 +29,7 @@ tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
     printf("%02X", byte);
     *(cursor++) = byte;
   }
+  cout << endl;
   // Keep track of where the writing started,
   // connect the start address to a tracePointer and return
   tracePointer tp;

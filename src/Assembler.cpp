@@ -90,7 +90,10 @@ static const asmjit::Operand convert(Argument arg) {
       return reg;
     }
     case ArgumentType::Mem: {
-      asmjit::x86::Mem mem = asmjit::x86::ptr(asmjit::x86::rbp, 8);
+      // [RBP(+|-)digit(s)]
+      string offsetStr = arg.val.substr(4, arg.val.length() - 5);
+      int offset = stoi(offsetStr);
+      asmjit::x86::Mem mem = asmjit::x86::qword_ptr(asmjit::x86::rbp, offset);
       return mem;
     }
     case ArgumentType::Imm: {
