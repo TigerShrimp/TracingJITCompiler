@@ -16,3 +16,12 @@ std::string ConstantUtf8::info() { return "ConstantUtf8: " + bytes; }
 std::string ConstantMethodHandle::info() { return "ConstantMethodHandle: "; }
 std::string ConstantMethodType::info() { return "ConstantMethodType: "; }
 std::string ConstantInvokeDynamic::info() { return "ConstantInvokeDynamic: "; }
+
+const std::string ConstantValueAttribute::attributeName = "ConstantValue";
+const std::string CodeAttribute::attributeName = "Code";
+const std::string StackMapTableAttribute::attributeName = "StackMapTable";
+const std::string LineNumberTableAttribute::attributeName = "LineNumberTable";
+const std::string LocalVariableTableAttribute::attributeName =
+    "LocalVariableTable";
+const std::string LocalVariableTypeTableAttribute::attributeName =
+    "LocalVariableTypeTable";

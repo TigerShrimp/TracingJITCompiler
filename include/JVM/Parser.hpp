@@ -13,6 +13,8 @@ class Parser {
 
  private:
   ClassFile parse(std::vector<uint8_t>);
+  std::vector<AttributeInfo*> parseAttributeInfo(
+      std::vector<uint8_t>::iterator&, const uint16_t, std::vector<CPInfo*>&);
 
   uint8_t readU1(std::vector<uint8_t>::iterator&);
   uint16_t readU2(std::vector<uint8_t>::iterator&);

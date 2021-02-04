@@ -188,9 +188,242 @@ struct ConstantInvokeDynamic : public CPInfo {
 //     u4 attribute_length;
 //     u1 info[attribute_length];
 // }
-struct AttributeInfo {
-  uint16_t attributeNameIndex;
+class AttributeInfo {};
+
+// ConstantValue_attribute {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u2 constantvalue_index;
+// }
+class ConstantValueAttribute : public AttributeInfo {
+ public:
+  uint16_t constantValueIndex;
+  static const std::string attributeName;
 };
+
+// exception_table
+// u2 start_pc;
+// u2 end_pc;
+// u2 handler_pc;
+// u2 catch_type;
+struct ExceptionEntry {
+  uint16_t startPc;
+  uint16_t endPc;
+  uint16_t handlerPc;
+  uint16_t catchType;
+};
+
+// Code_attribute {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u2 max_stack;
+//     u2 max_locals;
+//     u4 code_length;
+//     u1 code[code_length];
+//     u2 exception_table_length;
+//     {   u2 start_pc;
+//         u2 end_pc;
+//         u2 handler_pc;
+//         u2 catch_type;
+//     } exception_table[exception_table_length];
+//     u2 attributes_count;
+//     attribute_info attributes[attributes_count];
+// }
+class CodeAttribute : public AttributeInfo {
+ public:
+  uint16_t maxStack;
+  uint16_t maxLocals;
+  std::vector<uint8_t> code;
+  std::vector<ExceptionEntry> exceptionTable;
+  std::vector<AttributeInfo*> attributes;
+  static const std::string attributeName;
+};
+
+enum VerificationType {
+  Top,
+  Integer,
+  Float,
+  Long,
+  Double,
+  Null,
+  UninitializedThis,
+  Object,
+  Uninitialized
+};
+
+struct VerificationInfo {
+  VerificationType tag;
+  uint16_t cPoolIndexOrOffset;
+};
+
+enum StackMapFrameType {
+  Same,
+  SameLocals,
+  SameLocalsExtended,
+  Chop,
+  SameExtended,
+  Append,
+  Full
+};
+
+struct StackMapFrame {
+  StackMapFrameType type;
+  uint16_t offsetData;
+  std::vector<VerificationInfo> stack;
+};
+
+// StackMapTable_attribute
+//  u2              attribute_name_index;
+//  u4              attribute_length;
+//  u2              number_of_entries;
+//  stack_map_frame entries[number_of_entries];
+//
+class StackMapTableAttribute : public AttributeInfo {
+ public:
+  std::vector<StackMapFrame> entries;
+  static const std::string attributeName;
+};
+
+//class ExceptionsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class InnerClassesAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class EnclosingMethodAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class SyntheticAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class SignatureAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class SourceFileAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class SourceDebugExtensionAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+
+// line_number_table
+//  u2 start_pc;
+//  u2 line_number;
+struct LineNumberEntry {
+  uint16_t startPC;
+  uint16_t lineNumber;
+};
+
+// LineNumberTable_attribute {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u2 line_number_table_length;
+//     {   u2 start_pc;
+//         u2 line_number;
+//     } line_number_table[line_number_table_length];
+// }
+class LineNumberTableAttribute : public AttributeInfo {
+ public:
+  std::vector<LineNumberEntry> lineNumberTable;
+  static const std::string attributeName;
+};
+
+// local_variable_table
+// u2 start_pc;
+// u2 length;
+// u2 name_index;
+// u2 descriptor_index;
+// u2 index;
+struct LocalVariableEntry {
+  uint16_t startPC;
+  uint16_t length;
+  uint16_t nameIndex;
+  uint16_t descriptorIndex;
+  uint16_t index;
+};
+
+// LocalVariableTable_attribute {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u2 local_variable_table_length;
+//     {   u2 start_pc;
+//         u2 length;
+//         u2 name_index;
+//         u2 descriptor_index;
+//         u2 index;
+//     } local_variable_table[local_variable_table_length];
+// }
+class LocalVariableTableAttribute : public AttributeInfo {
+ public:
+  std::vector<LocalVariableEntry> localVariableTable;
+  static const std::string attributeName;
+};
+
+// local_variable_type_table
+// u2 start_pc;
+// u2 length;
+// u2 name_index;
+// u2 signature_index;
+// u2 index;
+struct LocalVariableTypeEntry {
+  uint16_t startPC;
+  uint16_t length;
+  uint16_t nameIndex;
+  uint16_t signatureIndex;
+  uint16_t index;
+};
+
+// LocalVariableTypeTable_attribute {
+//     u2 attribute_name_index;
+//     u4 attribute_length;
+//     u2 local_variable_type_table_length;
+//     {   u2 start_pc;
+//         u2 length;
+//         u2 name_index;
+//         u2 signature_index;
+//         u2 index;
+//     } local_variable_type_table[local_variable_type_table_length];
+// }
+class LocalVariableTypeTableAttribute : public AttributeInfo {
+ public:
+  std::vector<LocalVariableTypeEntry> localVariableTypeTable;
+  static const std::string attributeName;
+};
+//class DeprecatedAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class RuntimeVisibleAnnotationsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class RuntimeInvisibleAnnotationsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class RuntimeVisibleParameterAnnotationsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class RuntimeInvisibleParameterAnnotationsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class AnnotationDefaultAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
+//class BootstrapMethodsAttribute : public AttributeInfo {
+//  public:
+//   virtual static std::string attributeName() override;
+// };
 
 // field_info {
 //     u2             access_flags;
@@ -199,7 +432,12 @@ struct AttributeInfo {
 //     u2             attributes_count;
 //     attribute_info attributes[attributes_count];
 // }
-struct FieldInfo {};
+struct FieldInfo {
+  uint16_t accsessFlag;
+  uint16_t nameIndex;
+  uint16_t descriptorIndex;
+  std::vector<AttributeInfo*> attributes;
+};
 
 // method_info {
 //     u2             access_flags;
@@ -208,7 +446,12 @@ struct FieldInfo {};
 //     u2             attributes_count;
 //     attribute_info attributes[attributes_count];
 // }
-struct MethodInfo {};
+struct MethodInfo {
+  uint16_t accsessFlag;
+  uint16_t nameIndex;
+  uint16_t descriptorIndex;
+  std::vector<AttributeInfo*> attributes;
+};
 
 // ClassFile {
 //     u4             magic;
@@ -244,7 +487,7 @@ struct ClassFile {
   //   uint16_t methods_count;
   std::vector<MethodInfo> methods;
   //   uint16_t attributes_count;
-  std::vector<AttributeInfo> attributes;
+  std::vector<AttributeInfo*> attributes;
 };
 
 #endif  // JMM_CLASS_FILE_HPP
