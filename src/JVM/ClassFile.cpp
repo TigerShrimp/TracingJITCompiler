@@ -1,57 +1,75 @@
 #include "JVM/ClassFile.hpp"
+using namespace std;
 
-std::string ConstantClass::info() { return "ConstantClass: "; }
-std::string ConstantFieldRef::info() { return "ConstantFieldRef: "; }
-std::string ConstantMethodRef::info() { return "ConstantMethodRef: "; }
-std::string ConstantInterfaceMethodRef::info() {
+string ConstantClass::info() { return "ConstantClass: "; }
+string ConstantFieldRef::info() { return "ConstantFieldRef: "; }
+string ConstantMethodRef::info() { return "ConstantMethodRef: "; }
+string ConstantInterfaceMethodRef::info() {
   return "ConstantInterfaceMethodRef: ";
 }
-std::string ConstantString::info() { return "ConstantString: "; }
-std::string ConstantInteger::info() { return "ConstantInteger: "; }
-std::string ConstantFloat::info() { return "ConstantFloat: "; }
-std::string ConstantLong::info() { return "ConstantLong: "; }
-std::string ConstantDouble::info() { return "ConstantDouble: "; }
-std::string ConstantNameAndType::info() { return "ConstantNameAndType: "; }
-std::string ConstantUtf8::info() { return "ConstantUtf8: " + bytes; }
-std::string ConstantMethodHandle::info() { return "ConstantMethodHandle: "; }
-std::string ConstantMethodType::info() { return "ConstantMethodType: "; }
-std::string ConstantInvokeDynamic::info() { return "ConstantInvokeDynamic: "; }
+string ConstantString::info() { return "ConstantString: "; }
+string ConstantInteger::info() { return "ConstantInteger: "; }
+string ConstantFloat::info() { return "ConstantFloat: "; }
+string ConstantLong::info() { return "ConstantLong: "; }
+string ConstantDouble::info() { return "ConstantDouble: "; }
+string ConstantNameAndType::info() { return "ConstantNameAndType: "; }
+string ConstantUtf8::info() { return "ConstantUtf8: " + bytes; }
+string ConstantMethodHandle::info() { return "ConstantMethodHandle: "; }
+string ConstantMethodType::info() { return "ConstantMethodType: "; }
+string ConstantInvokeDynamic::info() { return "ConstantInvokeDynamic: "; }
 
-const std::string ConstantValueAttribute::attributeName = "ConstantValue";
-const std::string CodeAttribute::attributeName = "Code";
-const std::string StackMapTableAttribute::attributeName = "StackMapTable";
-const std::string LineNumberTableAttribute::attributeName = "LineNumberTable";
-const std::string LocalVariableTableAttribute::attributeName =
-    "LocalVariableTable";
-const std::string LocalVariableTypeTableAttribute::attributeName =
+const string ConstantValueAttribute::attributeName = "ConstantValue";
+const string CodeAttribute::attributeName = "Code";
+const string StackMapTableAttribute::attributeName = "StackMapTable";
+const string SourceFileAttribute::attributeName = "SourceFile";
+const string LineNumberTableAttribute::attributeName = "LineNumberTable";
+const string LocalVariableTableAttribute::attributeName = "LocalVariableTable";
+const string LocalVariableTypeTableAttribute::attributeName =
     "LocalVariableTypeTable";
 
 void ClassFile::printContents() {
-  std::cout << "\n----- Class File contents: -----\n" << std::endl;
-  std::cout << "Magic: " << magic << std::endl;
-  std::cout << "MinorVersion: " << minorVersion << std::endl;
-  std::cout << "MajorVersion: " << majorVersion << std::endl;
-  std::cout << "Constant Pool Info: " << constantPool.size() << std::endl;
+  SourceFileAttribute* sfa =
+      (SourceFileAttribute*)attributes[SourceFileAttribute::attributeName];
+  ConstantUtf8* fileName = (ConstantUtf8*)constantPool[sfa->sourceFileIndex];
+  cout << "\n----- Class File (source: " << fileName->bytes
+       << ") contents: -----\n"
+       << endl;
+  cout << "Magic: " << hex << magic << dec << endl;
+  cout << "MinorVersion: " << minorVersion << endl;
+  cout << "MajorVersion: " << majorVersion << endl;
+  cout << "Constant Pool Info: " << constantPool.size() << endl;
   for (auto cpInfo : constantPool) {
-    std::cout << "\t" << cpInfo->info() << std::endl;
+    cout << " " << cpInfo->info() << endl;
   }
-  std::cout << "AccessFlags: " << accessFlags << std::endl;
-  std::cout << "ThisClass: " << thisClass << std::endl;
-  std::cout << "SuperClass: " << superClass << std::endl;
-  std::cout << "Interfaces: " << interfaces.size() << std::endl;
+  cout << "AccessFlags: " << accessFlags << endl;
+  cout << "ThisClass: " << thisClass << endl;
+  cout << "SuperClass: " << superClass << endl;
+  cout << "Interfaces: " << interfaces.size() << endl;
   for (auto interface : interfaces) {
-    std::cout << "\t" << interface << std::endl;
+    cout << " " << interface << endl;
   }
-  std::cout << "Fields: " << fields.size() << std::endl;
+  cout << "Fields: " << fields.size() << endl;
   for (auto field : fields) {
-    std::cout << "\t" << constantPool[field.nameIndex]->info() << " - "
-              << constantPool[field.nameIndex]->info() << std::endl;
+    cout << " " << constantPool[field.nameIndex]->info() << " - "
+         << constantPool[field.descriptorIndex]->info() << endl;
   }
-  std::cout << "Methods: " << methods.size() << std::endl;
+  cout << "Methods: " << methods.size() << endl;
   for (auto method : methods) {
-    std::cout << "\t" << constantPool[method.nameIndex]->info() << " - "
-              << constantPool[method.nameIndex]->info() << std::endl;
+    cout << " " << constantPool[method.nameIndex]->info() << " - "
+         << constantPool[method.descriptorIndex]->info() << endl;
+    CodeAttribute* ca =
+        (CodeAttribute*)method.attributes[CodeAttribute::attributeName];
+
+    cout << "  Max Stack:" << ca->maxStack << endl;
+    cout << "  Max Locals:" << ca->maxLocals << endl;
+    cout << "  Attributes: " << ca->attributes.size() << endl;
+    cout << "  Code:" << endl;
+    cout << hex;
+    for (auto byte : ca->code) {
+      cout << "   0x" << (size_t)byte << endl;
+    }
+    cout << dec;
   }
-  std::cout << "Attributes: " << attributes.size() << std::endl;
-  std::cout << "\n----- End of Class File -----\n" << std::endl;
+  cout << "Attributes: " << attributes.size() << endl;
+  cout << "\n----- End of Class File -----\n" << endl;
 }

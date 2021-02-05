@@ -15,9 +15,11 @@ class Parser {
   ClassFile parse(std::vector<uint8_t>);
   std::vector<CPInfo*> parseConstantPoolInfo(std::vector<uint8_t>::iterator&);
   std::vector<uint16_t> parseInterfaces(std::vector<uint8_t>::iterator&);
-  std::vector<FieldInfo> parseFields(std::vector<uint8_t>::iterator&, std::vector<CPInfo*>);
-  std::vector<MethodInfo> parseMethods(std::vector<uint8_t>::iterator&, std::vector<CPInfo*>);
-  std::vector<AttributeInfo*> parseAttributeInfo(
+  std::vector<FieldInfo> parseFields(std::vector<uint8_t>::iterator&,
+                                     std::vector<CPInfo*>);
+  std::vector<MethodInfo> parseMethods(std::vector<uint8_t>::iterator&,
+                                       std::vector<CPInfo*>);
+  std::map<std::string, AttributeInfo*> parseAttributeInfo(
       std::vector<uint8_t>::iterator&, std::vector<CPInfo*>&);
 
   uint8_t readU1(std::vector<uint8_t>::iterator&);

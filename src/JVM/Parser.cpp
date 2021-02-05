@@ -127,9 +127,8 @@ std::vector<CPInfo*> Parser::parseConstantPoolInfo(
       case ConstantUtf8::tagValue: {
         ConstantUtf8* constantUtf8 = new ConstantUtf8();
         uint16_t length = readU2(classCursor);
-        std::string str(classCursor, classCursor + length);
+        constantUtf8->bytes = std::string(classCursor, classCursor + length);
         advance(classCursor, length);
-        constantUtf8->bytes = str;
         cpInfo.push_back(constantUtf8);
         break;
       }
@@ -202,35 +201,27 @@ std::vector<MethodInfo> Parser::parseMethods(
   return methods;
 }
 
-std::vector<AttributeInfo*> Parser::parseAttributeInfo(
+std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
     std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*>& cpInfo) {
   const uint16_t attributesCount = readU2(classCursor);
-  std::vector<AttributeInfo*> attributes;
-  std::cout << "ParseAttributeInfo: " << attributesCount << std::endl;
+  std::map<std::string, AttributeInfo*> attributes;
   for (int i = 0; i < attributesCount; i++) {
+    AttributeInfo* ai = NULL;
     uint16_t attributeNameIndex = readU2(classCursor);
-    std::cout << "name index: " << attributeNameIndex << std::endl;
     ConstantUtf8* attributeName = (ConstantUtf8*)cpInfo[attributeNameIndex];
-    std::cout << "Attribute name:(" << i << "/" << attributesCount
-              << "): " << attributeName->bytes << std::endl;
+    std::cout << "Attribute name:  " << attributeName->bytes << std::endl;
     uint32_t attributeLength = readU4(classCursor);
-    /*if (attributeName->bytes == ConstantValueAttribute::attributeName) {
-      // Parse ConstantValueAttribute
-    } else*/
-    if (attributeName->bytes == CodeAttribute::attributeName) {
-      // Parse CodeAttribute
+    if (attributeName->bytes == ConstantValueAttribute::attributeName) {
+      ConstantValueAttribute* constantValueAttribute =
+          new ConstantValueAttribute();
+      constantValueAttribute->constantValueIndex = readU2(classCursor);
+      ai = constantValueAttribute;
+    } else if (attributeName->bytes == CodeAttribute::attributeName) {
       CodeAttribute* codeAttribute = new CodeAttribute();
       codeAttribute->maxStack = readU2(classCursor);
-      std::cout << "Max Stack: " << codeAttribute->maxStack << std::endl;
       codeAttribute->maxLocals = readU2(classCursor);
-      std::cout << "Max Locals: " << codeAttribute->maxLocals << std::endl;
       uint32_t codeLength = readU4(classCursor);
-      std::cout << "Code length: " << codeLength << std::endl;
-      std::vector<uint8_t> code(classCursor, classCursor + codeLength);
-      codeAttribute->code = code;
-      for (auto byte : code) {
-        std::cout << std::hex << "0x" << (size_t)byte << std::dec << std::endl;
-      }
+      codeAttribute->code = std::vector(classCursor, classCursor + codeLength);
       advance(classCursor, codeLength);
       uint16_t exceptionTableLength = readU2(classCursor);
       std::vector<ExceptionEntry> exceptionTable;
@@ -243,13 +234,39 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
       }
       codeAttribute->exceptionTable = exceptionTable;
       codeAttribute->attributes = parseAttributeInfo(classCursor, cpInfo);
-      attributes.push_back(codeAttribute);
+      ai = codeAttribute;
       // } else if (attributeName->bytes ==
-      //            StackMapTableAttribute::attributeName){
-      //   // Parse StackMapTableAttribute
+      // StackMapTableAttribute::attributeName) {
+      //   StackMapTableAttribute* stackMapTableAttribute =
+      //       new StackMapTableAttribute();
+      //   uint16_t numberOfEntries = readU2(classCursor);
+      //   std::vector<StackMapFrame> entries;
+      //   for (int i = 0; i < numberOfEntries; i++) {
+      //     uint8_t tag = readU1(classCursor);
+      //     // Same /* 0-63 */
+      //     // SameLocals,/* 64-127 */
+      //     //  verification_type_info stack[1];
+      //     // SameLocalsExtended,/* 247 */
+      //     //  u2 offset_delta;
+      //     //  verification_type_info stack[1];
+      //     // Chop,/* 248-250 */
+      //     //  u2 offset_delta;
+      //     // SameExtended,/* 251 */
+      //     //  u2 offset_delta;
+      //     // Append,/* 252-254 */
+      //     //  u2 offset_delta;
+      //     //  verification_type_info locals[frame_type - 251];
+      //     // Full/* 255 */
+      //     //  u2 offset_delta;
+      //     //  u2 number_of_locals;
+      //     //  verification_type_info locals[number_of_locals];
+      //     //  u2 number_of_stack_items;
+      //     //  verification_type_info stack[number_of_stack_items];
+      //   }
+      //   stackMapTableAttribute->entries = entries;
+      //   ai = stackMapTableAttribute;
     } else if (attributeName->bytes ==
                LineNumberTableAttribute::attributeName) {
-      // Parse LineNumberTableAttribute
       LineNumberTableAttribute* lineNumberTableAttribute =
           new LineNumberTableAttribute();
       uint16_t lineNumberTableLength = readU2(classCursor);
@@ -261,7 +278,7 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
         lineNumberTable.push_back(entry);
       }
       lineNumberTableAttribute->lineNumberTable = lineNumberTable;
-      attributes.push_back(lineNumberTableAttribute);
+      ai = lineNumberTableAttribute;
 
       //  else if (attributeName->bytes ==
       //            LocalVariableTableAttribute::attributeName){
@@ -269,12 +286,22 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
       // } else if (attributeName->bytes ==
       //            LocalVariableTypeTableAttribute::attributeName){
       //   // Parse LocalVariableTypeTableAttribute
+    } else if (attributeName->bytes == SourceFileAttribute::attributeName) {
+      SourceFileAttribute* sourceFileAttribute = new SourceFileAttribute();
+      sourceFileAttribute->sourceFileIndex = readU2(classCursor);
+      ai = sourceFileAttribute;
     } else {
       std::cout << "-> Cursor jump: " << attributeLength << " ->" << std::endl;
       advance(classCursor, attributeLength);
     }
+    if (ai != NULL) {
+      // To check that we don't need a list in the values of the map instead of
+      // just one object
+      auto finder = attributes.find(attributeName->bytes);
+      assert(finder == attributes.end());
+      attributes[attributeName->bytes] = ai;
+    }
   }
-  std::cout << "Attributes parsed: " << attributes.size() << std::endl;
   return attributes;
 }
 

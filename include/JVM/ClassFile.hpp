@@ -1,6 +1,7 @@
 #ifndef JMM_CLASS_FILE_HPP
 #define JMM_CLASS_FILE_HPP
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -235,7 +236,7 @@ class CodeAttribute : public AttributeInfo {
   uint16_t maxLocals;
   std::vector<uint8_t> code;
   std::vector<ExceptionEntry> exceptionTable;
-  std::vector<AttributeInfo*> attributes;
+  std::map<std::string, AttributeInfo*> attributes;
   static const std::string attributeName;
 };
 
@@ -269,6 +270,7 @@ enum StackMapFrameType {
 struct StackMapFrame {
   StackMapFrameType type;
   uint16_t offsetData;
+  std::vector<VerificationInfo> locals;
   std::vector<VerificationInfo> stack;
 };
 
@@ -304,10 +306,17 @@ class StackMapTableAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-// class SourceFileAttribute : public AttributeInfo {
-//  public:
-//   virtual static std::string attributeName() override;
-// };
+
+// SourceFile_attribute {
+//        u2 attribute_name_index;
+//        u4 attribute_length;
+//        u2 sourcefile_index;
+// }
+class SourceFileAttribute : public AttributeInfo {
+ public:
+  uint16_t sourceFileIndex;
+  static const std::string attributeName;
+};
 // class SourceDebugExtensionAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
@@ -436,7 +445,7 @@ struct FieldInfo {
   uint16_t accsessFlag;
   uint16_t nameIndex;
   uint16_t descriptorIndex;
-  std::vector<AttributeInfo*> attributes;
+  std::map<std::string, AttributeInfo*> attributes;
 };
 
 // method_info {
@@ -450,7 +459,7 @@ struct MethodInfo {
   uint16_t accsessFlag;
   uint16_t nameIndex;
   uint16_t descriptorIndex;
-  std::vector<AttributeInfo*> attributes;
+  std::map<std::string, AttributeInfo*> attributes;
 };
 
 // ClassFile {
@@ -487,7 +496,7 @@ struct ClassFile {
   //   uint16_t methods_count;
   std::vector<MethodInfo> methods;
   //   uint16_t attributes_count;
-  std::vector<AttributeInfo*> attributes;
+  std::map<std::string, AttributeInfo*> attributes;
   void printContents();
 };
 
