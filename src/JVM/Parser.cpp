@@ -12,18 +12,44 @@ ClassFile Parser::parse(std::string classFilePath) {
 
 ClassFile Parser::parse(std::vector<uint8_t> classBytes) {
   std::vector<uint8_t>::iterator classCursor = classBytes.begin();
-
+  std::vector<CPInfo*> cpInfo;
   //   ClassFile {
-  //     u4             magic;
-  uint32_t magic = readU4(classCursor);
-  std::cout << "Magic: " << std::hex << magic << std::dec << std::endl;
-  //     u2             minor_version;
-  uint16_t minorVersion = readU2(classCursor);
-  std::cout << "MinorVersion: " << minorVersion << std::endl;
-  //     u2             major_version;
-  uint16_t majorVersion = readU2(classCursor);
-  std::cout << "MajorVersion: " << majorVersion << std::endl;
-  //     u2             constant_pool_count;
+  ClassFile cf{
+      //     u4             magic;
+      readU4(classCursor),
+      //     u2             minor_version;
+      readU2(classCursor),
+      //     u2             major_version;
+      readU2(classCursor),
+      //     u2             constant_pool_count;
+      //     cp_info        constant_pool[constant_pool_count-1];
+      (cpInfo = parseConstantPoolInfo(classCursor)),
+      //     u2             access_flags;
+      readU2(classCursor),
+      //     u2             this_class;
+      readU2(classCursor),
+      //     u2             super_class;
+      readU2(classCursor),
+      //     u2             interfaces_count;
+      //     u2             interfaces[interfaces_count];s
+      parseInterfaces(classCursor),
+      //     u2             fields_count;
+      //     field_info     fields[fields_count];
+      parseFields(classCursor, cpInfo),
+      //     u2             methods_count;
+      //     method_info    methods[methods_count];
+      parseMethods(classCursor, cpInfo),
+      //     u2             attributes_count;
+      //     attribute_info attributes[attributes_count];
+      parseAttributeInfo(classCursor, cpInfo)
+      // }
+  };
+  assert(classCursor == classBytes.end());
+  return cf;
+}
+
+std::vector<CPInfo*> Parser::parseConstantPoolInfo(
+    std::vector<uint8_t>::iterator& classCursor) {
   uint16_t constantPoolCount = readU2(classCursor);
 
   std::vector<CPInfo*> cpInfo;
@@ -100,10 +126,9 @@ ClassFile Parser::parse(std::vector<uint8_t> classBytes) {
       }
       case ConstantUtf8::tagValue: {
         ConstantUtf8* constantUtf8 = new ConstantUtf8();
-        constantUtf8->length = readU2(classCursor);
-        std::string str(classCursor, classCursor + constantUtf8->length);
-        assert(str.length() == constantUtf8->length);
-        advance(classCursor, constantUtf8->length);
+        uint16_t length = readU2(classCursor);
+        std::string str(classCursor, classCursor + length);
+        advance(classCursor, length);
         constantUtf8->bytes = str;
         cpInfo.push_back(constantUtf8);
         break;
@@ -134,83 +159,52 @@ ClassFile Parser::parse(std::vector<uint8_t> classBytes) {
         break;
     }
   }
+  return cpInfo;
+}
 
-  //     cp_info        constant_pool[constant_pool_count-1];
-  std::cout << "CPInfo: " << constantPoolCount << std::endl;
-  for (auto cp : cpInfo) {
-    std::cout << "\t" << cp->info() << std::endl;
-  }
-  //     u2             access_flags;
-  uint16_t accessFlags = readU2(classCursor);
-  std::cout << "AccessFlags: " << accessFlags << std::endl;
-  //     u2             this_class;
-  uint16_t thisClass = readU2(classCursor);
-  std::cout << "ThisClass: " << thisClass << std::endl;
-  //     u2             super_class;
-  uint16_t superClass = readU2(classCursor);
-
-  std::cout << "SuperClass: " << superClass << std::endl;
-
-  //     u2             interfaces_count;
+std::vector<uint16_t> Parser::parseInterfaces(
+    std::vector<uint8_t>::iterator& classCursor) {
   uint16_t interfacesCount = readU2(classCursor);
   std::vector<uint16_t> interfaces;
   for (int i = 0; i < interfacesCount; i++) {
-    //     u2             interfaces[interfaces_count];s
     interfaces.push_back(readU2(classCursor));
   }
-  std::cout << "Interfaces: " << interfacesCount << std::endl;
-  for (auto interface : interfaces) {
-    std::cout << "\t" << interface << std::endl;
-  }
+  return interfaces;
+}
 
-  //     u2             fields_count;
+std::vector<FieldInfo> Parser::parseFields(
+    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*> cpInfo) {
   uint16_t fieldsCount = readU2(classCursor);
-  //     field_info     fields[fields_count];
-  std::cout << "Fields: " << fieldsCount << std::endl;
   std::vector<FieldInfo> fields;
   for (int i = 0; i < fieldsCount; i++) {
     FieldInfo fieldInfo;
     fieldInfo.accsessFlag = readU2(classCursor);
     fieldInfo.nameIndex = readU2(classCursor);
     fieldInfo.descriptorIndex = readU2(classCursor);
-    uint16_t attributesCount = readU2(classCursor);
-    fieldInfo.attributes =
-        parseAttributeInfo(classCursor, attributesCount, cpInfo);
+    fieldInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     fields.push_back(fieldInfo);
   }
-
-  for (auto field : fields) {
-    std::cout << "\t" << cpInfo[field.nameIndex]->info() << " "
-              << cpInfo[field.descriptorIndex]->info() << std::endl;
-  }
-  //     u2             methods_count;
+  return fields;
+}
+std::vector<MethodInfo> Parser::parseMethods(
+    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*> cpInfo) {
   uint16_t methodsCount = readU2(classCursor);
-  //     method_info    methods[methods_count];
-  std::cout << "Methods: " << methodsCount << std::endl;
   std::vector<MethodInfo> methods;
   for (int i = 0; i < methodsCount; i++) {
     MethodInfo methodInfo;
     methodInfo.accsessFlag = readU2(classCursor);
     methodInfo.nameIndex = readU2(classCursor);
     methodInfo.descriptorIndex = readU2(classCursor);
-    uint16_t attributesCount = readU2(classCursor);
-    methodInfo.attributes =
-        parseAttributeInfo(classCursor, attributesCount, cpInfo);
+    methodInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     methods.push_back(methodInfo);
-    std::cout << "\t" << cpInfo[methodInfo.nameIndex]->info() << " "
-              << cpInfo[methodInfo.descriptorIndex]->info() << std::endl;
   }
-  //     u2             attributes_count;
-  //     attribute_info attributes[attributes_count];
-  // }
-
-  std::cout << "\n---- End of Parse ----\n" << std::endl;
-  return {};
+  std::cout << "Methods parsed:" << methods.size() << std::endl;
+  return methods;
 }
 
 std::vector<AttributeInfo*> Parser::parseAttributeInfo(
-    std::vector<uint8_t>::iterator& classCursor, const uint16_t attributesCount,
-    std::vector<CPInfo*>& cpInfo) {
+    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*>& cpInfo) {
+  const uint16_t attributesCount = readU2(classCursor);
   std::vector<AttributeInfo*> attributes;
   std::cout << "ParseAttributeInfo: " << attributesCount << std::endl;
   for (int i = 0; i < attributesCount; i++) {
@@ -248,9 +242,7 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
         // TODO: Parse exception
       }
       codeAttribute->exceptionTable = exceptionTable;
-      uint16_t internalAttributesCount = readU2(classCursor);
-      codeAttribute->attributes =
-          parseAttributeInfo(classCursor, internalAttributesCount, cpInfo);
+      codeAttribute->attributes = parseAttributeInfo(classCursor, cpInfo);
       attributes.push_back(codeAttribute);
       // } else if (attributeName->bytes ==
       //            StackMapTableAttribute::attributeName){
@@ -262,7 +254,6 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
           new LineNumberTableAttribute();
       uint16_t lineNumberTableLength = readU2(classCursor);
       std::vector<LineNumberEntry> lineNumberTable;
-      assert(2 + lineNumberTableLength * 4 == attributeLength);
       for (int i = 0; i < lineNumberTableLength; i++) {
         LineNumberEntry entry;
         entry.startPC = readU2(classCursor);
@@ -283,6 +274,7 @@ std::vector<AttributeInfo*> Parser::parseAttributeInfo(
       advance(classCursor, attributeLength);
     }
   }
+  std::cout << "Attributes parsed: " << attributes.size() << std::endl;
   return attributes;
 }
 

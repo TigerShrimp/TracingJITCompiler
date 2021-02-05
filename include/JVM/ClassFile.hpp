@@ -1,5 +1,6 @@
 #ifndef JMM_CLASS_FILE_HPP
 #define JMM_CLASS_FILE_HPP
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -141,7 +142,6 @@ struct ConstantNameAndType : public CPInfo {
 struct ConstantUtf8 : public CPInfo {
  public:
   static const uint8_t tagValue = 1;
-  uint16_t length;
   std::string bytes;
   virtual std::string info() override;
 };
@@ -284,31 +284,31 @@ class StackMapTableAttribute : public AttributeInfo {
   static const std::string attributeName;
 };
 
-//class ExceptionsAttribute : public AttributeInfo {
+// class ExceptionsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class InnerClassesAttribute : public AttributeInfo {
+// class InnerClassesAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class EnclosingMethodAttribute : public AttributeInfo {
+// class EnclosingMethodAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class SyntheticAttribute : public AttributeInfo {
+// class SyntheticAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class SignatureAttribute : public AttributeInfo {
+// class SignatureAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class SourceFileAttribute : public AttributeInfo {
+// class SourceFileAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class SourceDebugExtensionAttribute : public AttributeInfo {
+// class SourceDebugExtensionAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
@@ -396,31 +396,31 @@ class LocalVariableTypeTableAttribute : public AttributeInfo {
   std::vector<LocalVariableTypeEntry> localVariableTypeTable;
   static const std::string attributeName;
 };
-//class DeprecatedAttribute : public AttributeInfo {
+// class DeprecatedAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class RuntimeVisibleAnnotationsAttribute : public AttributeInfo {
+// class RuntimeVisibleAnnotationsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class RuntimeInvisibleAnnotationsAttribute : public AttributeInfo {
+// class RuntimeInvisibleAnnotationsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class RuntimeVisibleParameterAnnotationsAttribute : public AttributeInfo {
+// class RuntimeVisibleParameterAnnotationsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class RuntimeInvisibleParameterAnnotationsAttribute : public AttributeInfo {
+// class RuntimeInvisibleParameterAnnotationsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class AnnotationDefaultAttribute : public AttributeInfo {
+// class AnnotationDefaultAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-//class BootstrapMethodsAttribute : public AttributeInfo {
+// class BootstrapMethodsAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
@@ -488,6 +488,7 @@ struct ClassFile {
   std::vector<MethodInfo> methods;
   //   uint16_t attributes_count;
   std::vector<AttributeInfo*> attributes;
+  void printContents();
 };
 
 #endif  // JMM_CLASS_FILE_HPP

@@ -25,3 +25,33 @@ const std::string LocalVariableTableAttribute::attributeName =
     "LocalVariableTable";
 const std::string LocalVariableTypeTableAttribute::attributeName =
     "LocalVariableTypeTable";
+
+void ClassFile::printContents() {
+  std::cout << "\n----- Class File contents: -----\n" << std::endl;
+  std::cout << "Magic: " << magic << std::endl;
+  std::cout << "MinorVersion: " << minorVersion << std::endl;
+  std::cout << "MajorVersion: " << majorVersion << std::endl;
+  std::cout << "Constant Pool Info: " << constantPool.size() << std::endl;
+  for (auto cpInfo : constantPool) {
+    std::cout << "\t" << cpInfo->info() << std::endl;
+  }
+  std::cout << "AccessFlags: " << accessFlags << std::endl;
+  std::cout << "ThisClass: " << thisClass << std::endl;
+  std::cout << "SuperClass: " << superClass << std::endl;
+  std::cout << "Interfaces: " << interfaces.size() << std::endl;
+  for (auto interface : interfaces) {
+    std::cout << "\t" << interface << std::endl;
+  }
+  std::cout << "Fields: " << fields.size() << std::endl;
+  for (auto field : fields) {
+    std::cout << "\t" << constantPool[field.nameIndex]->info() << " - "
+              << constantPool[field.nameIndex]->info() << std::endl;
+  }
+  std::cout << "Methods: " << methods.size() << std::endl;
+  for (auto method : methods) {
+    std::cout << "\t" << constantPool[method.nameIndex]->info() << " - "
+              << constantPool[method.nameIndex]->info() << std::endl;
+  }
+  std::cout << "Attributes: " << attributes.size() << std::endl;
+  std::cout << "\n----- End of Class File -----\n" << std::endl;
+}
