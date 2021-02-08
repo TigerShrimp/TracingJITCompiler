@@ -235,36 +235,49 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       codeAttribute->exceptionTable = exceptionTable;
       codeAttribute->attributes = parseAttributeInfo(classCursor, cpInfo);
       ai = codeAttribute;
-      // } else if (attributeName->bytes ==
-      // StackMapTableAttribute::attributeName) {
-      //   StackMapTableAttribute* stackMapTableAttribute =
-      //       new StackMapTableAttribute();
-      //   uint16_t numberOfEntries = readU2(classCursor);
-      //   std::vector<StackMapFrame> entries;
-      //   for (int i = 0; i < numberOfEntries; i++) {
-      //     uint8_t tag = readU1(classCursor);
-      //     // Same /* 0-63 */
-      //     // SameLocals,/* 64-127 */
-      //     //  verification_type_info stack[1];
-      //     // SameLocalsExtended,/* 247 */
-      //     //  u2 offset_delta;
-      //     //  verification_type_info stack[1];
-      //     // Chop,/* 248-250 */
-      //     //  u2 offset_delta;
-      //     // SameExtended,/* 251 */
-      //     //  u2 offset_delta;
-      //     // Append,/* 252-254 */
-      //     //  u2 offset_delta;
-      //     //  verification_type_info locals[frame_type - 251];
-      //     // Full/* 255 */
-      //     //  u2 offset_delta;
-      //     //  u2 number_of_locals;
-      //     //  verification_type_info locals[number_of_locals];
-      //     //  u2 number_of_stack_items;
-      //     //  verification_type_info stack[number_of_stack_items];
-      //   }
-      //   stackMapTableAttribute->entries = entries;
-      //   ai = stackMapTableAttribute;
+    } else if (attributeName->bytes == StackMapTableAttribute::attributeName) {
+      StackMapTableAttribute* stackMapTableAttribute =
+          new StackMapTableAttribute();
+      uint16_t numberOfEntries = readU2(classCursor);
+      std::vector<StackMapFrame> entries;
+      for (int i = 0; i < numberOfEntries; i++) {
+        uint8_t tag = readU1(classCursor);
+        StackMapFrame frame;
+        if (tag < 64) {
+          frame.type = Same;
+        } else if (tag < 128) {
+          frame.type = SameLocals;
+          frame.stack = parseVerificationInfo(classCursor, 1);
+        } else if (tag == 247) {
+          frame.type = SameLocalsExtended;
+          frame.stack = parseVerificationInfo(classCursor, 1);
+        } else if (tag == 248 || tag == 249 || tag == 250) {
+          frame.type = Chop;
+          frame.offsetDelta = readU2(classCursor);
+        } else if (tag == 251) {
+          frame.type = SameExtended;
+          frame.offsetDelta = readU2(classCursor);
+        } else if (tag == 252 || tag == 253 || tag == 254) {
+          frame.type = Append;
+          frame.offsetDelta = readU2(classCursor);
+          frame.locals = parseVerificationInfo(classCursor, tag - 251);
+        }
+
+        else if (tag == 255) {
+          frame.type = Full;
+          frame.offsetDelta = readU2(classCursor);
+          frame.locals =
+              parseVerificationInfo(classCursor, readU2(classCursor));
+          frame.stack = parseVerificationInfo(classCursor, readU2(classCursor));
+        } else {  // Sanity check
+          std::cout << "StackMapAttribute tag: " << (size_t)tag << " not caught"
+                    << std::endl;
+          throw;
+        }
+        entries.push_back(frame);
+      }
+      stackMapTableAttribute->entries = entries;
+      ai = stackMapTableAttribute;
     } else if (attributeName->bytes ==
                LineNumberTableAttribute::attributeName) {
       LineNumberTableAttribute* lineNumberTableAttribute =
@@ -303,6 +316,20 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
     }
   }
   return attributes;
+}
+
+std::vector<VerificationInfo> Parser::parseVerificationInfo(
+    std::vector<uint8_t>::iterator& classCursor, uint16_t entries) {
+  std::vector<VerificationInfo> verifications;
+  for (int i = 0; i < entries; i++) {
+    VerificationInfo info;
+    info.tag = static_cast<VerificationType>(readU1(classCursor));
+    if (info.tag == Object || info.tag == Uninitialized) {
+      info.cPoolIndexOrOffset = readU2(classCursor);
+    }
+    verifications.push_back(info);
+  }
+  return verifications;
 }
 
 uint8_t Parser::readU1(std::vector<uint8_t>::iterator& cursor) {

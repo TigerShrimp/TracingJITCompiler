@@ -240,16 +240,16 @@ class CodeAttribute : public AttributeInfo {
   static const std::string attributeName;
 };
 
-enum VerificationType {
-  Top,
-  Integer,
-  Float,
-  Long,
-  Double,
-  Null,
-  UninitializedThis,
-  Object,
-  Uninitialized
+enum VerificationType : uint8_t {
+  Top = 0,
+  Integer = 1,
+  Float = 2,
+  Long = 4,
+  Double = 3,
+  Null = 5,
+  UninitializedThis = 6,
+  Object = 7,
+  Uninitialized = 8
 };
 
 struct VerificationInfo {
@@ -258,18 +258,52 @@ struct VerificationInfo {
 };
 
 enum StackMapFrameType {
+  // same_frame {
+  // u1 frame_type = SAME; /* 0-63 */
+  // }
   Same,
+  // same_locals_1_stack_item_frame {
+  // u1 frame_type = SAME_LOCALS_1_STACK_ITEM; /* 64-127 */
+  // verification_type_info stack[1];
+  // }
   SameLocals,
+  // same_locals_1_stack_item_frame_extended {
+  // u1 frame_type = SAME_LOCALS_1_STACK_ITEM_EXTENDED; /* 247 */
+  // u2 offset_delta;
+  // verification_type_info stack[1];
+  // }
   SameLocalsExtended,
+  // chop_frame {
+  // u1 frame_type = CHOP; /* 248-250 */
+  // u2 offset_delta;
+  // }
   Chop,
+
+  // same_frame_extended {
+  // u1 frame_type = SAME_FRAME_EXTENDED; /* 251 */
+  // u2 offset_delta;
+  // }
   SameExtended,
+  // append_frame {
+  // u1 frame_type = APPEND; /* 252-254 */
+  // u2 offset_delta;
+  // verification_type_info locals[frame_type - 251];
+  // }
   Append,
+  //  full_frame {
+  // u1 frame_type = FULL_FRAME; /* 255 */
+  // u2 offset_delta;
+  // u2 number_of_locals;
+  // verification_type_info locals[number_of_locals];
+  // u2 number_of_stack_items;
+  // verification_type_info stack[number_of_stack_items];
+  // }
   Full
 };
 
 struct StackMapFrame {
   StackMapFrameType type;
-  uint16_t offsetData;
+  uint16_t offsetDelta;
   std::vector<VerificationInfo> locals;
   std::vector<VerificationInfo> stack;
 };

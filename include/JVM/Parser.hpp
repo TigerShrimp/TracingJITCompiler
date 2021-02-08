@@ -21,6 +21,8 @@ class Parser {
                                        std::vector<CPInfo*>);
   std::map<std::string, AttributeInfo*> parseAttributeInfo(
       std::vector<uint8_t>::iterator&, std::vector<CPInfo*>&);
+  std::vector<VerificationInfo> parseVerificationInfo(
+      std::vector<uint8_t>::iterator&, uint16_t);
 
   uint8_t readU1(std::vector<uint8_t>::iterator&);
   uint16_t readU2(std::vector<uint8_t>::iterator&);
