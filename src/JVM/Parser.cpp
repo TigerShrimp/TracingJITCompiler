@@ -197,7 +197,6 @@ std::vector<MethodInfo> Parser::parseMethods(
     methodInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     methods.push_back(methodInfo);
   }
-  std::cout << "Methods parsed:" << methods.size() << std::endl;
   return methods;
 }
 
@@ -209,7 +208,6 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
     AttributeInfo* ai = NULL;
     uint16_t attributeNameIndex = readU2(classCursor);
     ConstantUtf8* attributeName = (ConstantUtf8*)cpInfo[attributeNameIndex];
-    std::cout << "Attribute name:  " << attributeName->bytes << std::endl;
     uint32_t attributeLength = readU4(classCursor);
     if (attributeName->bytes == ConstantValueAttribute::attributeName) {
       ConstantValueAttribute* constantValueAttribute =
@@ -277,63 +275,39 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       }
       stackMapTableAttribute->entries = entries;
       ai = stackMapTableAttribute;
-    } else if (attributeName->bytes ==
-               LineNumberTableAttribute::attributeName) {
-      LineNumberTableAttribute* lineNumberTableAttribute =
-          new LineNumberTableAttribute();
-      uint16_t lineNumberTableLength = readU2(classCursor);
-      std::vector<LineNumberEntry> lineNumberTable;
-      for (int i = 0; i < lineNumberTableLength; i++) {
-        LineNumberEntry entry;
-        entry.startPC = readU2(classCursor);
-        entry.lineNumber = readU2(classCursor);
-        lineNumberTable.push_back(entry);
-      }
-      lineNumberTableAttribute->lineNumberTable = lineNumberTable;
-      ai = lineNumberTableAttribute;
-      // TODO: remove localvariable-stuff since it might only be needed for
-      // debugging purposes and is very cluttered
-    } else if (attributeName->bytes ==
-               LocalVariableTableAttribute::attributeName) {
-      LocalVariableTableAttribute* localVariableTableAttribute =
-          new LocalVariableTableAttribute();
-      uint16_t localVariableTableLength = readU2(classCursor);
-      std::vector<LocalVariableEntry> localVariableTable;
-      for (int i = 0; i < localVariableTableLength; i++) {
-        LocalVariableEntry localVariableEntry;
-        localVariableEntry.startPC = readU2(classCursor);
-        localVariableEntry.length = readU2(classCursor);
-        localVariableEntry.nameIndex = readU2(classCursor);
-        localVariableEntry.descriptorIndex = readU2(classCursor);
-        localVariableEntry.index = readU2(classCursor);
-        localVariableTable.push_back(localVariableEntry);
-      }
-      localVariableTableAttribute->localVariableTable = localVariableTable;
-      ai = localVariableTableAttribute;
-    } else if (attributeName->bytes ==
-               LocalVariableTypeTableAttribute::attributeName) {
-      LocalVariableTypeTableAttribute* localVariableTypeTableAttribute =
-          new LocalVariableTypeTableAttribute();
-      uint16_t localVariableTypeTableLength = readU2(classCursor);
-      std::vector<LocalVariableTypeEntry> localVariableTypeTable;
-      for (int i = 0; i < localVariableTypeTableLength; i++) {
-        LocalVariableTypeEntry localVariableTypeEntry;
-        localVariableTypeEntry.startPC = readU2(classCursor);
-        localVariableTypeEntry.length = readU2(classCursor);
-        localVariableTypeEntry.nameIndex = readU2(classCursor);
-        localVariableTypeEntry.signatureIndex = readU2(classCursor);
-        localVariableTypeEntry.index = readU2(classCursor);
-        localVariableTypeTable.push_back(localVariableTypeEntry);
-      }
-      localVariableTypeTableAttribute->localVariableTypeTable =
-          localVariableTypeTable;
-      ai = localVariableTypeTableAttribute;
     } else if (attributeName->bytes == SourceFileAttribute::attributeName) {
       SourceFileAttribute* sourceFileAttribute = new SourceFileAttribute();
       sourceFileAttribute->sourceFileIndex = readU2(classCursor);
       ai = sourceFileAttribute;
+
+    } else if (attributeName->bytes ==
+               BootstrapMethodsAttribute::attributeName) {
+      BootstrapMethodsAttribute* bootstrapMethodAttribute =
+          new BootstrapMethodsAttribute();
+      uint16_t numBootstrapMethods = readU2(classCursor);
+      std::vector<BootstrapMethod> bootstrapMethodTable;
+      for (int i = 0; i < numBootstrapMethods; i++) {
+        BootstrapMethod bootstrapMethod;
+        bootstrapMethod.methodRef = readU2(classCursor);
+        uint16_t arguments = readU2(classCursor);
+        bootstrapMethod.arguments =
+            std::vector<uint16_t>(classCursor, classCursor + arguments);
+        advance(classCursor, arguments);
+      }
+      bootstrapMethodAttribute->bootstrapMethods = bootstrapMethodTable;
+      ai = bootstrapMethodAttribute;
+    } else if (attributeName->bytes == NestHostAttribute::attributeName) {
+      NestHostAttribute* nestHostAttribute = new NestHostAttribute();
+      nestHostAttribute->hostClassIndex = readU2(classCursor);
+      ai = nestHostAttribute;
+    } else if (attributeName->bytes == NestMembersAttribute::attributeName) {
+      NestMembersAttribute* nestMembersAttribute = new NestMembersAttribute();
+      uint16_t numClasses = readU2(classCursor);
+      nestMembersAttribute->classes =
+          std::vector<uint16_t>(classCursor, classCursor + numClasses);
+      advance(classCursor, numClasses);
+      ai = nestMembersAttribute;
     } else {
-      std::cout << "-> Cursor jump: " << attributeLength << " ->" << std::endl;
       advance(classCursor, attributeLength);
     }
     if (ai != NULL) {

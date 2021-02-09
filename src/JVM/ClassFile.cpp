@@ -22,10 +22,9 @@ const string ConstantValueAttribute::attributeName = "ConstantValue";
 const string CodeAttribute::attributeName = "Code";
 const string StackMapTableAttribute::attributeName = "StackMapTable";
 const string SourceFileAttribute::attributeName = "SourceFile";
-const string LineNumberTableAttribute::attributeName = "LineNumberTable";
-const string LocalVariableTableAttribute::attributeName = "LocalVariableTable";
-const string LocalVariableTypeTableAttribute::attributeName =
-    "LocalVariableTypeTable";
+const string BootstrapMethodsAttribute::attributeName = "BootstrapMethods";
+const string NestHostAttribute::attributeName = "NestHost";
+const string NestMembersAttribute::attributeName = "NestMembers";
 
 void ClassFile::printContents() {
   SourceFileAttribute* sfa =
