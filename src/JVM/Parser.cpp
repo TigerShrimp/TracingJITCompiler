@@ -225,12 +225,13 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       advance(classCursor, codeLength);
       uint16_t exceptionTableLength = readU2(classCursor);
       std::vector<ExceptionEntry> exceptionTable;
-      if (exceptionTableLength != 0) {
-        std::cout << "Exceptions needs to be parsed!";
-        throw;
-      }
       for (int i = 0; i < exceptionTableLength; i++) {
-        // TODO: Parse exception
+        ExceptionEntry exceptionEntry;
+        exceptionEntry.startPC = readU2(classCursor);
+        exceptionEntry.endPC = readU2(classCursor);
+        exceptionEntry.handlerPC = readU2(classCursor);
+        exceptionEntry.catchType = readU2(classCursor);
+        exceptionTable.push_back(exceptionEntry);
       }
       codeAttribute->exceptionTable = exceptionTable;
       codeAttribute->attributes = parseAttributeInfo(classCursor, cpInfo);
@@ -261,9 +262,7 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
           frame.type = Append;
           frame.offsetDelta = readU2(classCursor);
           frame.locals = parseVerificationInfo(classCursor, tag - 251);
-        }
-
-        else if (tag == 255) {
+        } else if (tag == 255) {
           frame.type = Full;
           frame.offsetDelta = readU2(classCursor);
           frame.locals =
@@ -292,13 +291,43 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       }
       lineNumberTableAttribute->lineNumberTable = lineNumberTable;
       ai = lineNumberTableAttribute;
-
-      //  else if (attributeName->bytes ==
-      //            LocalVariableTableAttribute::attributeName){
-      //   // Parse LocalVariableTableAttribute
-      // } else if (attributeName->bytes ==
-      //            LocalVariableTypeTableAttribute::attributeName){
-      //   // Parse LocalVariableTypeTableAttribute
+      // TODO: remove localvariable-stuff since it might only be needed for
+      // debugging purposes and is very cluttered
+    } else if (attributeName->bytes ==
+               LocalVariableTableAttribute::attributeName) {
+      LocalVariableTableAttribute* localVariableTableAttribute =
+          new LocalVariableTableAttribute();
+      uint16_t localVariableTableLength = readU2(classCursor);
+      std::vector<LocalVariableEntry> localVariableTable;
+      for (int i = 0; i < localVariableTableLength; i++) {
+        LocalVariableEntry localVariableEntry;
+        localVariableEntry.startPC = readU2(classCursor);
+        localVariableEntry.length = readU2(classCursor);
+        localVariableEntry.nameIndex = readU2(classCursor);
+        localVariableEntry.descriptorIndex = readU2(classCursor);
+        localVariableEntry.index = readU2(classCursor);
+        localVariableTable.push_back(localVariableEntry);
+      }
+      localVariableTableAttribute->localVariableTable = localVariableTable;
+      ai = localVariableTableAttribute;
+    } else if (attributeName->bytes ==
+               LocalVariableTypeTableAttribute::attributeName) {
+      LocalVariableTypeTableAttribute* localVariableTypeTableAttribute =
+          new LocalVariableTypeTableAttribute();
+      uint16_t localVariableTypeTableLength = readU2(classCursor);
+      std::vector<LocalVariableTypeEntry> localVariableTypeTable;
+      for (int i = 0; i < localVariableTypeTableLength; i++) {
+        LocalVariableTypeEntry localVariableTypeEntry;
+        localVariableTypeEntry.startPC = readU2(classCursor);
+        localVariableTypeEntry.length = readU2(classCursor);
+        localVariableTypeEntry.nameIndex = readU2(classCursor);
+        localVariableTypeEntry.signatureIndex = readU2(classCursor);
+        localVariableTypeEntry.index = readU2(classCursor);
+        localVariableTypeTable.push_back(localVariableTypeEntry);
+      }
+      localVariableTypeTableAttribute->localVariableTypeTable =
+          localVariableTypeTable;
+      ai = localVariableTypeTableAttribute;
     } else if (attributeName->bytes == SourceFileAttribute::attributeName) {
       SourceFileAttribute* sourceFileAttribute = new SourceFileAttribute();
       sourceFileAttribute->sourceFileIndex = readU2(classCursor);

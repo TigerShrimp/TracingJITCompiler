@@ -208,9 +208,9 @@ class ConstantValueAttribute : public AttributeInfo {
 // u2 handler_pc;
 // u2 catch_type;
 struct ExceptionEntry {
-  uint16_t startPc;
-  uint16_t endPc;
-  uint16_t handlerPc;
+  uint16_t startPC;
+  uint16_t endPC;
+  uint16_t handlerPC;
   uint16_t catchType;
 };
 
@@ -463,10 +463,19 @@ class LocalVariableTypeTableAttribute : public AttributeInfo {
 //  public:
 //   virtual static std::string attributeName() override;
 // };
-// class BootstrapMethodsAttribute : public AttributeInfo {
-//  public:
-//   virtual static std::string attributeName() override;
-// };
+// BootstrapMethods_attribute {
+//        u2 attribute_name_index;
+//        u4 attribute_length;
+//        u2 num_bootstrap_methods;
+//        {   u2 bootstrap_method_ref;
+//            u2 num_bootstrap_arguments;
+//            u2 bootstrap_arguments[num_bootstrap_arguments];
+//        } bootstrap_methods[num_bootstrap_methods];
+// }
+class BootstrapMethodsAttribute : public AttributeInfo {
+ public:
+  virtual static std::string attributeName() override;
+};
 
 // field_info {
 //     u2             access_flags;

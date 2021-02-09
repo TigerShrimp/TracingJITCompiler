@@ -19,4 +19,10 @@ To build and run project from root:
 
 ---
 
+TODO:
+
+src/Assembler.cpp: better parsing of memory location
+
+README.md: Automate updating of TODO-list here with git push hook.
+
 Created by Simon Kärrman and Jakob Erlandsson
