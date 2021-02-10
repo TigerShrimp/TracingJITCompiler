@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Assembler.hpp"
+#include "Interpreter.hpp"
 #include "JVM/ClassFile.hpp"
 #include "JVM/Parser.hpp"
 #include "MemoryHandler.hpp"
@@ -23,7 +24,9 @@ void printError(string error, bool showUsage) {
 void interpretJava(string path) {
   Parser parser;
   ClassFile cf = parser.parse(path);
-  cf.printContents();
+  // cf.printContents();
+  Interpreter interpreter;
+  interpreter.interpret(cf);
 }
 
 void assembleAssembly(string path) {
