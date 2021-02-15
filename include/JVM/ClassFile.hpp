@@ -241,15 +241,15 @@ class CodeAttribute : public AttributeInfo {
 };
 
 enum VerificationType : uint8_t {
-  Top = 0,
-  Integer = 1,
-  Float = 2,
-  Long = 4,
-  Double = 3,
-  Null = 5,
-  UninitializedThis = 6,
-  Object = 7,
-  Uninitialized = 8
+  TopVerification = 0,
+  IntegerVerification = 1,
+  FloatVerification = 2,
+  LongVerification = 4,
+  DoubleVerification = 3,
+  NullVerification = 5,
+  UninitializedThisVerification = 6,
+  ObjectVerification = 7,
+  UninitializedVerification = 8
 };
 
 struct VerificationInfo {

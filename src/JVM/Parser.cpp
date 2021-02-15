@@ -1,18 +1,20 @@
 #include "JVM/Parser.hpp"
 
-ClassFile Parser::parse(std::string classFilePath) {
-  std::ifstream input(classFilePath, std::ios::binary);
+using namespace std;
 
-  std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(input)),
-                             (std::istreambuf_iterator<char>()));
+ClassFile Parser::parse(string classFilePath) {
+  ifstream input(classFilePath, ios::binary);
+
+  vector<uint8_t> bytes((istreambuf_iterator<char>(input)),
+                        (istreambuf_iterator<char>()));
 
   input.close();
   return parse(bytes);
 }
 
-ClassFile Parser::parse(std::vector<uint8_t> classBytes) {
-  std::vector<uint8_t>::iterator classCursor = classBytes.begin();
-  std::vector<CPInfo*> cpInfo;
+ClassFile Parser::parse(vector<uint8_t> classBytes) {
+  vector<uint8_t>::iterator classCursor = classBytes.begin();
+  vector<CPInfo*> cpInfo;
   //   ClassFile {
   ClassFile cf{
       //     u4             magic;
@@ -48,11 +50,11 @@ ClassFile Parser::parse(std::vector<uint8_t> classBytes) {
   return cf;
 }
 
-std::vector<CPInfo*> Parser::parseConstantPoolInfo(
-    std::vector<uint8_t>::iterator& classCursor) {
+vector<CPInfo*> Parser::parseConstantPoolInfo(
+    vector<uint8_t>::iterator& classCursor) {
   uint16_t constantPoolCount = readU2(classCursor);
 
-  std::vector<CPInfo*> cpInfo;
+  vector<CPInfo*> cpInfo;
   cpInfo.push_back(new ConstantClass());
   for (uint16_t i = 1; i < constantPoolCount; i++) {
     uint8_t tag = readU1(classCursor);
@@ -127,7 +129,7 @@ std::vector<CPInfo*> Parser::parseConstantPoolInfo(
       case ConstantUtf8::tagValue: {
         ConstantUtf8* constantUtf8 = new ConstantUtf8();
         uint16_t length = readU2(classCursor);
-        constantUtf8->bytes = std::string(classCursor, classCursor + length);
+        constantUtf8->bytes = string(classCursor, classCursor + length);
         advance(classCursor, length);
         cpInfo.push_back(constantUtf8);
         break;
@@ -154,27 +156,27 @@ std::vector<CPInfo*> Parser::parseConstantPoolInfo(
         break;
       }
       default:
-        std::cout << "Unrecognized tag" << tag << std::endl;
+        cout << "Unrecognized tag" << tag << endl;
         break;
     }
   }
   return cpInfo;
 }
 
-std::vector<uint16_t> Parser::parseInterfaces(
-    std::vector<uint8_t>::iterator& classCursor) {
+vector<uint16_t> Parser::parseInterfaces(
+    vector<uint8_t>::iterator& classCursor) {
   uint16_t interfacesCount = readU2(classCursor);
-  std::vector<uint16_t> interfaces;
+  vector<uint16_t> interfaces;
   for (int i = 0; i < interfacesCount; i++) {
     interfaces.push_back(readU2(classCursor));
   }
   return interfaces;
 }
 
-std::vector<FieldInfo> Parser::parseFields(
-    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*> cpInfo) {
+vector<FieldInfo> Parser::parseFields(vector<uint8_t>::iterator& classCursor,
+                                      vector<CPInfo*> cpInfo) {
   uint16_t fieldsCount = readU2(classCursor);
-  std::vector<FieldInfo> fields;
+  vector<FieldInfo> fields;
   for (int i = 0; i < fieldsCount; i++) {
     FieldInfo fieldInfo;
     fieldInfo.accsessFlag = readU2(classCursor);
@@ -185,10 +187,10 @@ std::vector<FieldInfo> Parser::parseFields(
   }
   return fields;
 }
-std::vector<MethodInfo> Parser::parseMethods(
-    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*> cpInfo) {
+vector<MethodInfo> Parser::parseMethods(vector<uint8_t>::iterator& classCursor,
+                                        vector<CPInfo*> cpInfo) {
   uint16_t methodsCount = readU2(classCursor);
-  std::vector<MethodInfo> methods;
+  vector<MethodInfo> methods;
   for (int i = 0; i < methodsCount; i++) {
     MethodInfo methodInfo;
     methodInfo.accsessFlag = readU2(classCursor);
@@ -200,10 +202,10 @@ std::vector<MethodInfo> Parser::parseMethods(
   return methods;
 }
 
-std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
-    std::vector<uint8_t>::iterator& classCursor, std::vector<CPInfo*>& cpInfo) {
+map<string, AttributeInfo*> Parser::parseAttributeInfo(
+    vector<uint8_t>::iterator& classCursor, vector<CPInfo*>& cpInfo) {
   const uint16_t attributesCount = readU2(classCursor);
-  std::map<std::string, AttributeInfo*> attributes;
+  map<string, AttributeInfo*> attributes;
   for (int i = 0; i < attributesCount; i++) {
     AttributeInfo* ai = NULL;
     uint16_t attributeNameIndex = readU2(classCursor);
@@ -219,10 +221,10 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       codeAttribute->maxStack = readU2(classCursor);
       codeAttribute->maxLocals = readU2(classCursor);
       uint32_t codeLength = readU4(classCursor);
-      codeAttribute->code = std::vector(classCursor, classCursor + codeLength);
+      codeAttribute->code = vector(classCursor, classCursor + codeLength);
       advance(classCursor, codeLength);
       uint16_t exceptionTableLength = readU2(classCursor);
-      std::vector<ExceptionEntry> exceptionTable;
+      vector<ExceptionEntry> exceptionTable;
       for (int i = 0; i < exceptionTableLength; i++) {
         ExceptionEntry exceptionEntry;
         exceptionEntry.startPC = readU2(classCursor);
@@ -238,7 +240,7 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       StackMapTableAttribute* stackMapTableAttribute =
           new StackMapTableAttribute();
       uint16_t numberOfEntries = readU2(classCursor);
-      std::vector<StackMapFrame> entries;
+      vector<StackMapFrame> entries;
       for (int i = 0; i < numberOfEntries; i++) {
         uint8_t tag = readU1(classCursor);
         StackMapFrame frame;
@@ -267,8 +269,8 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
               parseVerificationInfo(classCursor, readU2(classCursor));
           frame.stack = parseVerificationInfo(classCursor, readU2(classCursor));
         } else {  // Sanity check
-          std::cout << "StackMapAttribute tag: " << (size_t)tag << " not caught"
-                    << std::endl;
+          cout << "StackMapAttribute tag: " << (size_t)tag << " not caught"
+               << endl;
           throw;
         }
         entries.push_back(frame);
@@ -285,13 +287,13 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       BootstrapMethodsAttribute* bootstrapMethodAttribute =
           new BootstrapMethodsAttribute();
       uint16_t numBootstrapMethods = readU2(classCursor);
-      std::vector<BootstrapMethod> bootstrapMethodTable;
+      vector<BootstrapMethod> bootstrapMethodTable;
       for (int i = 0; i < numBootstrapMethods; i++) {
         BootstrapMethod bootstrapMethod;
         bootstrapMethod.methodRef = readU2(classCursor);
         uint16_t arguments = readU2(classCursor);
         bootstrapMethod.arguments =
-            std::vector<uint16_t>(classCursor, classCursor + arguments);
+            vector<uint16_t>(classCursor, classCursor + arguments);
         advance(classCursor, arguments);
       }
       bootstrapMethodAttribute->bootstrapMethods = bootstrapMethodTable;
@@ -304,7 +306,7 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
       NestMembersAttribute* nestMembersAttribute = new NestMembersAttribute();
       uint16_t numClasses = readU2(classCursor);
       nestMembersAttribute->classes =
-          std::vector<uint16_t>(classCursor, classCursor + numClasses);
+          vector<uint16_t>(classCursor, classCursor + numClasses);
       advance(classCursor, numClasses);
       ai = nestMembersAttribute;
     } else {
@@ -321,13 +323,14 @@ std::map<std::string, AttributeInfo*> Parser::parseAttributeInfo(
   return attributes;
 }
 
-std::vector<VerificationInfo> Parser::parseVerificationInfo(
-    std::vector<uint8_t>::iterator& classCursor, uint16_t entries) {
-  std::vector<VerificationInfo> verifications;
+vector<VerificationInfo> Parser::parseVerificationInfo(
+    vector<uint8_t>::iterator& classCursor, uint16_t entries) {
+  vector<VerificationInfo> verifications;
   for (int i = 0; i < entries; i++) {
     VerificationInfo info;
     info.tag = static_cast<VerificationType>(readU1(classCursor));
-    if (info.tag == Object || info.tag == Uninitialized) {
+    if (info.tag == ObjectVerification ||
+        info.tag == UninitializedVerification) {
       info.cPoolIndexOrOffset = readU2(classCursor);
     }
     verifications.push_back(info);
@@ -335,16 +338,16 @@ std::vector<VerificationInfo> Parser::parseVerificationInfo(
   return verifications;
 }
 
-uint8_t Parser::readU1(std::vector<uint8_t>::iterator& cursor) {
+uint8_t Parser::readU1(vector<uint8_t>::iterator& cursor) {
   return *(cursor++);
 }
 
-uint16_t Parser::readU2(std::vector<uint8_t>::iterator& cursor) {
+uint16_t Parser::readU2(vector<uint8_t>::iterator& cursor) {
   uint8_t highByte = readU1(cursor), lowByte = readU1(cursor);
   return ((uint16_t)highByte << 8) | lowByte;
 }
 
-uint32_t Parser::readU4(std::vector<uint8_t>::iterator& cursor) {
+uint32_t Parser::readU4(vector<uint8_t>::iterator& cursor) {
   uint32_t highTwoByte = readU2(cursor), lowTwoByte = readU2(cursor);
   return ((uint32_t)highTwoByte << 16) | lowTwoByte;
 }

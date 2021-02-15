@@ -89,7 +89,7 @@ static const asmjit::Operand convert(Argument arg) {
       return reg;
     }
     case ArgumentType::Mem: {
-      // TODO: better
+      // TODO: Find memory location by regex instead.
       string offsetStr = arg.val.substr(4, arg.val.length() - 5);
       int offset = stoi(offsetStr);
       asmjit::x86::Mem mem = asmjit::x86::qword_ptr(asmjit::x86::rbp, offset);
