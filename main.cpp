@@ -25,12 +25,12 @@ void printError(string error, bool showUsage) {
 void interpretJava(string path) {
   Parser parser;
   Decoder decoder;
-  Interpreter interpreter;
   ClassFile cf = parser.parse(path);
   Program prg = decoder.decode(cf);
-  // cf.printContents();
+  cf.printContents();
   prg.debugPrint();
-  interpreter.interpret(cf);
+  Interpreter interpreter(prg);
+  interpreter.interpret();
 }
 
 void assembleAssembly(string path) {

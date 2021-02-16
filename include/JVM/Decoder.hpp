@@ -11,7 +11,7 @@
 
 static const std::regex typesRegex("\\(([^\\)]*)\\)([^$]+)");
 
-enum BaseType { Int, Double, Void, Long, String, List };
+enum BaseType { Int, Double, Void, Long, String, List, Float };
 
 struct Type {
   BaseType type;
