@@ -14,7 +14,7 @@ ClassFile Parser::parse(string classFilePath) {
 
 ClassFile Parser::parse(vector<uint8_t> classBytes) {
   vector<uint8_t>::iterator classCursor = classBytes.begin();
-  vector<CPInfo*> cpInfo;
+  map<size_t, CPInfo*> cpInfo;
   //   ClassFile {
   ClassFile cf{
       //     u4             magic;
@@ -50,33 +50,38 @@ ClassFile Parser::parse(vector<uint8_t> classBytes) {
   return cf;
 }
 
-vector<CPInfo*> Parser::parseConstantPoolInfo(
+map<size_t, CPInfo*> Parser::parseConstantPoolInfo(
     vector<uint8_t>::iterator& classCursor) {
   uint16_t constantPoolCount = readU2(classCursor);
 
-  vector<CPInfo*> cpInfo;
-  cpInfo.push_back(new ConstantClass());
-  for (uint16_t i = 1; i < constantPoolCount; i++) {
+  map<size_t, CPInfo*> cpInfo;
+#ifdef DEBUG_PRINT
+  cout << "CP length: " << constantPoolCount << endl;
+#endif
+  for (size_t i = 1; i < constantPoolCount; i++) {
     uint8_t tag = readU1(classCursor);
+#ifdef DEBUG_PRINT
+    cout << "Tag parsed: " << (size_t)tag << endl;
+#endif
     switch (tag) {
       case ConstantClass::tagValue: {
         ConstantClass* constantClass = new ConstantClass();
         constantClass->nameIndex = readU2(classCursor);
-        cpInfo.push_back(constantClass);
+        cpInfo[i] = constantClass;
         break;
       }
       case ConstantFieldRef::tagValue: {
         ConstantFieldRef* constantFieldRef = new ConstantFieldRef();
         constantFieldRef->classIndex = readU2(classCursor);
         constantFieldRef->nameAndTypeIndex = readU2(classCursor);
-        cpInfo.push_back(constantFieldRef);
+        cpInfo[i] = constantFieldRef;
         break;
       }
       case ConstantMethodRef::tagValue: {
         ConstantMethodRef* constantMethodRef = new ConstantMethodRef();
         constantMethodRef->classIndex = readU2(classCursor);
         constantMethodRef->nameAndTypeIndex = readU2(classCursor);
-        cpInfo.push_back(constantMethodRef);
+        cpInfo[i] = constantMethodRef;
         break;
       }
       case ConstantInterfaceMethodRef::tagValue: {
@@ -84,67 +89,76 @@ vector<CPInfo*> Parser::parseConstantPoolInfo(
             new ConstantInterfaceMethodRef();
         constantInterfaceMethodRef->classIndex = readU2(classCursor);
         constantInterfaceMethodRef->nameAndTypeIndex = readU2(classCursor);
-        cpInfo.push_back(constantInterfaceMethodRef);
+        cpInfo[i] = constantInterfaceMethodRef;
         break;
       }
       case ConstantString::tagValue: {
         ConstantString* constantString = new ConstantString();
         constantString->stringIndex = readU2(classCursor);
-        cpInfo.push_back(constantString);
+        cpInfo[i] = constantString;
         break;
       }
       case ConstantInteger::tagValue: {
         ConstantInteger* constantInteger = new ConstantInteger();
         constantInteger->bytes = readU4(classCursor);
-        cpInfo.push_back(constantInteger);
+        cpInfo[i] = constantInteger;
         break;
       }
       case ConstantFloat::tagValue: {
         ConstantFloat* constantFloat = new ConstantFloat();
         constantFloat->bytes = readU4(classCursor);
-        cpInfo.push_back(constantFloat);
+        cpInfo[i] = constantFloat;
         break;
       }
       case ConstantLong::tagValue: {
         ConstantLong* constantLong = new ConstantLong();
         constantLong->highBytes = readU4(classCursor);
         constantLong->lowBytes = readU4(classCursor);
-        cpInfo.push_back(constantLong);
+        cpInfo[i] = constantLong;
+        // Double and long constants take up two entires in the constant pool.
+        // The creators of Java themselves admit this was a poor choice.
+        i++;
         break;
       }
       case ConstantDouble::tagValue: {
         ConstantDouble* constantDouble = new ConstantDouble();
         constantDouble->highBytes = readU4(classCursor);
         constantDouble->lowBytes = readU4(classCursor);
-        cpInfo.push_back(constantDouble);
+        cpInfo[i] = constantDouble;
+        // Double and long constants take up two entires in the constant pool.
+        // The creators of Java themselves admit this was a poor choice.
+        i++;
         break;
       }
       case ConstantNameAndType::tagValue: {
         ConstantNameAndType* constantNameAndType = new ConstantNameAndType();
         constantNameAndType->nameIndex = readU2(classCursor);
         constantNameAndType->descriptorIndex = readU2(classCursor);
-        cpInfo.push_back(constantNameAndType);
+        cpInfo[i] = constantNameAndType;
         break;
       }
       case ConstantUtf8::tagValue: {
         ConstantUtf8* constantUtf8 = new ConstantUtf8();
         uint16_t length = readU2(classCursor);
         constantUtf8->bytes = string(classCursor, classCursor + length);
+#ifdef DEBUG_PRINT
+        cout << constantUtf8->bytes << endl;
+#endif
         advance(classCursor, length);
-        cpInfo.push_back(constantUtf8);
+        cpInfo[i] = constantUtf8;
         break;
       }
       case ConstantMethodHandle::tagValue: {
         ConstantMethodHandle* constantMethodHandle = new ConstantMethodHandle();
         constantMethodHandle->referenceKind = readU1(classCursor);
         constantMethodHandle->referenceIndex = readU2(classCursor);
-        cpInfo.push_back(constantMethodHandle);
+        cpInfo[i] = constantMethodHandle;
         break;
       }
       case ConstantMethodType::tagValue: {
         ConstantMethodType* constantMethodType = new ConstantMethodType();
         constantMethodType->descriptorIndex = readU2(classCursor);
-        cpInfo.push_back(constantMethodType);
+        cpInfo[i] = constantMethodType;
         break;
       }
       case ConstantInvokeDynamic::tagValue: {
@@ -152,11 +166,11 @@ vector<CPInfo*> Parser::parseConstantPoolInfo(
             new ConstantInvokeDynamic();
         constantInvokeDynamic->bootstrapMethodAttrIndex = readU2(classCursor);
         constantInvokeDynamic->nameAndTypeIndex = readU2(classCursor);
-        cpInfo.push_back(constantInvokeDynamic);
+        cpInfo[i] = constantInvokeDynamic;
         break;
       }
       default:
-        cerr << "Unrecognized tag" << tag << endl;
+        cerr << "Unrecognized tag " << (size_t)tag << endl;
         break;
     }
   }
@@ -170,11 +184,14 @@ vector<uint16_t> Parser::parseInterfaces(
   for (int i = 0; i < interfacesCount; i++) {
     interfaces.push_back(readU2(classCursor));
   }
+#ifdef DEBUG_PRINT
+  cout << "Parsed: Interfaces" << endl;
+#endif
   return interfaces;
 }
 
 vector<FieldInfo> Parser::parseFields(vector<uint8_t>::iterator& classCursor,
-                                      vector<CPInfo*> cpInfo) {
+                                      map<size_t, CPInfo*> cpInfo) {
   uint16_t fieldsCount = readU2(classCursor);
   vector<FieldInfo> fields;
   for (int i = 0; i < fieldsCount; i++) {
@@ -185,10 +202,13 @@ vector<FieldInfo> Parser::parseFields(vector<uint8_t>::iterator& classCursor,
     fieldInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     fields.push_back(fieldInfo);
   }
+#ifdef DEBUG_PRINT
+  cout << "Parsed: Fields: " << fieldsCount << endl;
+#endif
   return fields;
 }
 vector<MethodInfo> Parser::parseMethods(vector<uint8_t>::iterator& classCursor,
-                                        vector<CPInfo*> cpInfo) {
+                                        map<size_t, CPInfo*> cpInfo) {
   uint16_t methodsCount = readU2(classCursor);
   vector<MethodInfo> methods;
   for (int i = 0; i < methodsCount; i++) {
@@ -199,17 +219,26 @@ vector<MethodInfo> Parser::parseMethods(vector<uint8_t>::iterator& classCursor,
     methodInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     methods.push_back(methodInfo);
   }
+#ifdef DEBUG_PRINT
+  cout << "Parsed: Methods: " << methodsCount << endl;
+#endif
   return methods;
 }
 
 map<string, AttributeInfo*> Parser::parseAttributeInfo(
-    vector<uint8_t>::iterator& classCursor, vector<CPInfo*>& cpInfo) {
+    vector<uint8_t>::iterator& classCursor, map<size_t, CPInfo*>& cpInfo) {
   const uint16_t attributesCount = readU2(classCursor);
   map<string, AttributeInfo*> attributes;
+#ifdef DEBUG_PRINT
+  cout << "Attributes count: " << attributesCount << endl;
+#endif
   for (int i = 0; i < attributesCount; i++) {
     AttributeInfo* ai = NULL;
     uint16_t attributeNameIndex = readU2(classCursor);
     ConstantUtf8* attributeName = (ConstantUtf8*)cpInfo[attributeNameIndex];
+#ifdef DEBUG_PRINT
+    cout << "AttributeName: " << attributeName->bytes << endl;
+#endif
     uint32_t attributeLength = readU4(classCursor);
     if (attributeName->bytes == ConstantValueAttribute::attributeName) {
       ConstantValueAttribute* constantValueAttribute =
@@ -320,6 +349,9 @@ map<string, AttributeInfo*> Parser::parseAttributeInfo(
       attributes[attributeName->bytes] = ai;
     }
   }
+#ifdef DEBUG_PRINT
+  cout << "Parsed: Attributes" << endl;
+#endif
   return attributes;
 }
 
@@ -335,6 +367,9 @@ vector<VerificationInfo> Parser::parseVerificationInfo(
     }
     verifications.push_back(info);
   }
+#ifdef DEBUG_PRINT
+  cout << "Parsed: Verification" << endl;
+#endif
   return verifications;
 }
 

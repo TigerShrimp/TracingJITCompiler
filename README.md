@@ -28,7 +28,8 @@ To build and run project from root:
 TODO:
 
 - ./include/JVM/ByteCodes.hpp:262:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
-- ./src/Interpreter.cpp:20:  // TODO: Standardize execption handing.
+- ./src/Interpreter.cpp:113:  // TODO: Standardize execption handing.
+- ./src/Interpreter.cpp:200:        // TODO: Make Long/Double constants more general
 - ./src/Assembler.cpp:92:      // TODO: Find memory location by regex instead.
 
 Created by Simon Kärrman och Jakob Erlandsson

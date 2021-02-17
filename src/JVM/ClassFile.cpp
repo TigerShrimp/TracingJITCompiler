@@ -42,7 +42,7 @@ void ClassFile::printContents() {
   cout << "MajorVersion: " << majorVersion << endl;
   cout << "Constant Pool Info: " << constantPool.size() << endl;
   for (auto cpInfo : constantPool) {
-    cout << " " << cpInfo->info() << endl;
+    cout << " " << cpInfo.second->info() << endl;
   }
   cout << "AccessFlags: " << accessFlags << endl;
   cout << "ThisClass: " << thisClass << endl;

@@ -426,7 +426,7 @@ struct ClassFile {
   uint16_t minorVersion;
   uint16_t majorVersion;
   //   uint16_t constant_pool_count;
-  std::vector<CPInfo*> constantPool;
+  std::map<size_t, CPInfo*> constantPool;
   uint16_t accessFlags;
   uint16_t thisClass;
   uint16_t superClass;

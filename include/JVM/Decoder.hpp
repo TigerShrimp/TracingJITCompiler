@@ -12,7 +12,7 @@
 
 static const std::regex typesRegex("\\(([^\\)]*)\\)([^$]+)");
 
-enum BaseType { Int, Double, Void, Long, String, List, Float };
+enum BaseType { Int, Long, Float, Double, Void, String, List };
 
 struct Type {
   BaseType type;
@@ -38,7 +38,7 @@ struct Method {
 };
 
 struct Program {
-  std::vector<CPInfo*> constantPool;
+  std::map<size_t, CPInfo*> constantPool;
   std::map<uint16_t, Method> methods;
   void debugPrint();
 };
