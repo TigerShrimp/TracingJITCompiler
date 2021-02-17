@@ -9,28 +9,7 @@
 
 #include "Definitions.hpp"
 #include "JVM/ByteCodes.hpp"
-#include "JVM/Decoder.hpp"
-
-struct Value {
-  Type type;
-  union {
-    int intValue;
-    long longValue;
-    float floatValue;
-    double doubleValue;
-  } val;
-  Value();
-  Value(int);
-  Value(long);
-  Value(float);
-  Value(double);
-};
-
-Value operator+(const Value&, const Value&);
-Value operator-(const Value&, const Value&);
-Value operator*(const Value&, const Value&);
-Value operator/(const Value&, const Value&);
-bool operator<(const Value&, const Value&);
+#include "Program.hpp"
 
 struct State {
   size_t pc;

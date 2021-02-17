@@ -9,39 +9,9 @@
 #include "Definitions.hpp"
 #include "JVM/ByteCodes.hpp"
 #include "JVM/ClassFile.hpp"
+#include "Program.hpp"
 
 static const std::regex typesRegex("\\(([^\\)]*)\\)([^$]+)");
-
-enum BaseType { Int, Long, Float, Double, Void, String, List };
-
-struct Type {
-  BaseType type;
-  Type* subType;
-};
-
-struct ByteCode {
-  Mnemonic mnemonic;
-  std::vector<uint8_t> params;
-};
-
-struct Method {
- public:
-  uint16_t nameIndex;
-  Type retType;
-  std::vector<Type> argTypes;
-  uint16_t maxStack;
-  uint16_t maxLocals;
-  std::vector<uint8_t> code;
-  ConstantValueAttribute constant;
-  StackMapTableAttribute stackMapTable;
-  void debugPrint();
-};
-
-struct Program {
-  std::map<size_t, CPInfo*> constantPool;
-  std::map<uint16_t, Method> methods;
-  void debugPrint();
-};
 
 class Decoder {
  public:

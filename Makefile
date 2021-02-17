@@ -2,7 +2,7 @@ all: build/Makefile java
 	@cmake --build build --parallel
 
 build/Makefile: | build
-	@cd bueild && cmake -DCMAKE_BUILD_TYPE=Debug ..
+	@cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 build:
 	@mkdir build

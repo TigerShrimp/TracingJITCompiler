@@ -2,27 +2,6 @@
 
 using namespace std;
 
-void Program::debugPrint() {
-  for (auto method : methods) {
-    cout << ((ConstantUtf8*)constantPool[method.first])->bytes << ":" << endl;
-    method.second.debugPrint();
-  }
-}
-void Method::debugPrint() {
-  for (int i = 0; i < code.size(); i++) {
-    Mnemonic mnemonic = static_cast<Mnemonic>(code[i]);
-    string s = "";
-    int row = i;
-    for (int j = 0; j < getParameters(mnemonic); j++) {
-      i++;
-      s += to_string(code[i]);
-      s += " ";
-    }
-    cout << "  " << row << ": " << byteCodeNames.at(mnemonic) << " " << s
-         << endl;
-  }
-}
-
 Program Decoder::decode(ClassFile classFile) {
   Program prg = {classFile.constantPool};
   map<uint16_t, Method> methods;
