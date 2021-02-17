@@ -47,7 +47,7 @@ void Interpreter::eval() {
       }
       // Loading
       case ILOAD_1: {
-        load(2);
+        load(1);
         break;
       }
       case ILOAD_2: {
@@ -73,12 +73,13 @@ void Interpreter::eval() {
       }
       // Control flow
       case IF_ICMPGE: {
-        int value1 = pop().intValue;
-        int value2 = pop().intValue;
+        int rhs = pop().intValue;
+        int lhs = pop().intValue;
         int offset = getParametersAsInt();
-        cout << offset << endl;
-        if (value1 >= value2) {
+        if (lhs >= rhs) {
           state->pc += (offset - 1);
+        } else {
+          state->pc += 2;
         }
         break;
       }
@@ -87,8 +88,12 @@ void Interpreter::eval() {
         state->pc += (offset - 1);
         break;
       }
-      case RETURN:
+      case RETURN: {
+        State *state = states.top();
+        states.pop();
+        delete state;
         return;
+      }
       case INVOKEVIRTUAL: {
         cout << pop().intValue << endl;
         state->pc += 2;
@@ -96,9 +101,9 @@ void Interpreter::eval() {
       }
       // Arithmetic
       case IADD: {
-        int value1 = pop().intValue;
-        int value2 = pop().intValue;
-        int res = value1 + value2;
+        int rhs = pop().intValue;
+        int lhs = pop().intValue;
+        int res = lhs + rhs;
         push({.intValue = res});
         break;
       }
@@ -120,7 +125,7 @@ void Interpreter::eval() {
         break;
       }
       case NOP:
-        return;
+        break;
       default: {
         cout << "byte-code " << byteCodeNames.at(mnemonic)
              << " not supported at this moment, please come back later <3"
@@ -172,7 +177,6 @@ void Interpreter::push(Value value) { states.top()->stack.push(value); }
 int Interpreter::getParametersAsInt() {
   State *state = states.top();
   vector<uint8_t> code = program.methods[state->method].code;
-  cout << "param pc " << state->pc << endl;
   uint8_t byte1 = code[state->pc + 1];
   uint8_t byte2 = code[state->pc + 2];
   short res = byte1 << 8 | byte2;
