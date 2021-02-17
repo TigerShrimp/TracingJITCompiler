@@ -11,14 +11,14 @@ void Interpreter::interpret() {
 uint16_t Interpreter::findIndexOfMain() {
   for (auto method : program.methods) {
     uint16_t nameIndex = method.first;
-    std::string constantString =
+    string constantString =
         ((ConstantUtf8 *)program.constantPool[nameIndex])->bytes;
     if (constantString == "main") {
       return nameIndex;
     }
   }
   // TODO: Standardize execption handing.
-  std::cerr << "Class file containsn't a main function" << std::endl;
+  cerr << "Class file containsn't a main function" << endl;
   throw;
 }
 
@@ -28,7 +28,9 @@ void Interpreter::eval() {
   while (true) {
     Mnemonic mnemonic =
         static_cast<Mnemonic>(program.methods[state->method].code[state->pc]);
+#ifdef DEBUG_PRINT
     cout << byteCodeNames.at(mnemonic) << ": " << state->pc << endl;
+#endif  // DEBUG_PRINT
     switch (mnemonic) {
       // Constants loading
       case ICONST_0: {
@@ -95,7 +97,7 @@ void Interpreter::eval() {
         return;
       }
       case INVOKEVIRTUAL: {
-        cout << pop().intValue << endl;
+        cout << pop().intValue + 1 << endl;
         state->pc += 2;
         break;
       }
@@ -127,7 +129,7 @@ void Interpreter::eval() {
       case NOP:
         break;
       default: {
-        cout << "byte-code " << byteCodeNames.at(mnemonic)
+        cerr << "byte-code " << byteCodeNames.at(mnemonic)
              << " not supported at this moment, please come back later <3"
              << endl;
         break;

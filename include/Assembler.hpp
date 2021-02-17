@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "AsmHelper.hpp"
+#include "Definitions.hpp"
 
 static const std::regex regReg(
     "RDI|RSI|RDX|RCX|R8|R9|R10|R11|RAX|RBX|R12|R13|R14|R15");

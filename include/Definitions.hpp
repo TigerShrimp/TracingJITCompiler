@@ -1,0 +1,6 @@
+#ifndef DEFINITIONS_HPP
+#define DEFINITIONS_HPP
+
+//#define DEBUG_PRINT
+
+#endif  // DEFINITIONS_HPP

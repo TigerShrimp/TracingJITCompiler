@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "Definitions.hpp"
+
 // cp_info {
 //   u1 tag;
 //   u1 info[];

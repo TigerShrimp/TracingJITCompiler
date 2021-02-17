@@ -156,7 +156,7 @@ vector<CPInfo*> Parser::parseConstantPoolInfo(
         break;
       }
       default:
-        cout << "Unrecognized tag" << tag << endl;
+        cerr << "Unrecognized tag" << tag << endl;
         break;
     }
   }
@@ -269,7 +269,7 @@ map<string, AttributeInfo*> Parser::parseAttributeInfo(
               parseVerificationInfo(classCursor, readU2(classCursor));
           frame.stack = parseVerificationInfo(classCursor, readU2(classCursor));
         } else {  // Sanity check
-          cout << "StackMapAttribute tag: " << (size_t)tag << " not caught"
+          cerr << "StackMapAttribute tag: " << (size_t)tag << " not caught"
                << endl;
           throw;
         }

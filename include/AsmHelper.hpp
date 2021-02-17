@@ -6,6 +6,8 @@
 #include <map>
 #include <string>
 
+#include "Definitions.hpp"
+
 typedef std::map<std::string, asmjit::x86::Gp> regMap;
 typedef std::map<std::string, asmjit::x86::Inst::Id> mnemMap;
 

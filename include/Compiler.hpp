@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "Definitions.h"
+
 struct Instruction {
   asmjit::x86::Inst::Id inst;
   asmjit::x86::Operand op1;

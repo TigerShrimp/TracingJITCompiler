@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Assembler.hpp"
+#include "Definitions.hpp"
 
 typedef size_t (*pfunc)(void);
 

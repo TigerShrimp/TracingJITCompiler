@@ -52,7 +52,7 @@ vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
     }
     if (err) {
       perror("Emit error");
-      cout << "Compilen't" << endl;
+      cerr << "Compilen't" << endl;
       exit(EXIT_FAILURE);
     }
   }

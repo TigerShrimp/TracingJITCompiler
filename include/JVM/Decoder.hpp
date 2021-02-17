@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "Definitions.hpp"
 #include "JVM/ByteCodes.hpp"
 #include "JVM/ClassFile.hpp"
 

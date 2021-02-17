@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Assembler.hpp"
+#include "Definitions.hpp"
 #include "Interpreter.hpp"
 #include "JVM/ClassFile.hpp"
 #include "JVM/Decoder.hpp"
@@ -18,7 +19,7 @@ void readFile(string, vector<string>&);
 void printUsage() { cout << "Usage: TigerShrimp file.asm|.class" << endl; }
 
 void printError(string error, bool showUsage) {
-  cout << "TigerShrimp:\033[1;31m error: \033[0m" << error << endl;
+  cerr << "TigerShrimp:\033[1;31m error: \033[0m" << error << endl;
   if (showUsage) printUsage();
 }
 
@@ -27,8 +28,9 @@ void interpretJava(string path) {
   Decoder decoder;
   ClassFile cf = parser.parse(path);
   Program prg = decoder.decode(cf);
-  cf.printContents();
+#ifdef DEBUG_PRINT
   prg.debugPrint();
+#endif
   Interpreter interpreter(prg);
   interpreter.interpret();
 }
