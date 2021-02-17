@@ -19,7 +19,7 @@ union Value {
 
 struct State {
   size_t pc;
-  uint16_t method;
+  size_t method;
   std::stack<Value> stack;
   std::map<size_t, Value> locals;
 };
@@ -39,8 +39,9 @@ class Interpreter {
   size_t pc;
   std::stack<State*> states;
 
-  uint16_t findIndexOfMain();
-  void invoke(uint16_t);
+  size_t findIndexOfMain();
+  void invoke(size_t);
+  size_t findNameIndex(size_t);
   void eval();
   void load(size_t);
   void store(size_t);
@@ -48,6 +49,7 @@ class Interpreter {
   Value pop();
   void push(Value);
   int getParametersAsInt();
+  size_t sizeOf(std::vector<Type>);
   size_t sizeOf(Type);
 };
 

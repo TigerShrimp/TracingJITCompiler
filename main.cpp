@@ -29,6 +29,7 @@ void interpretJava(string path) {
   ClassFile cf = parser.parse(path);
   Program prg = decoder.decode(cf);
 #ifdef DEBUG_PRINT
+  cf.printContents();
   prg.debugPrint();
 #endif
   Interpreter interpreter(prg);

@@ -8,7 +8,7 @@ void Interpreter::interpret() {
   invoke(main);
 }
 
-uint16_t Interpreter::findIndexOfMain() {
+size_t Interpreter::findIndexOfMain() {
   for (auto method : program.methods) {
     uint16_t nameIndex = method.first;
     string constantString =
@@ -41,6 +41,33 @@ void Interpreter::eval() {
         push({.intValue = 1});
         break;
       }
+      case ICONST_2: {
+        push({.intValue = 2});
+        break;
+      }
+      case ICONST_3: {
+        push({.intValue = 3});
+        break;
+      }
+      case ICONST_4: {
+        push({.intValue = 4});
+        break;
+      }
+      case ICONST_5: {
+        push({.intValue = 5});
+        break;
+      }
+      case LCONST_1: {
+        push({.longValue = 1});
+        break;
+      }
+      case BIPUSH: {
+        uint8_t byte = code[state->pc + 1];
+        int8_t sByte = (int8_t)byte;
+        push({.intValue = sByte});
+        state->pc += 1;
+        break;
+      }
       case SIPUSH: {
         int param = getParametersAsInt();
         push({.intValue = param});
@@ -48,6 +75,10 @@ void Interpreter::eval() {
         break;
       }
       // Loading
+      case ILOAD_0: {
+        load(0);
+        break;
+      }
       case ILOAD_1: {
         load(1);
         break;
@@ -96,8 +127,24 @@ void Interpreter::eval() {
         delete state;
         return;
       }
+      case IRETURN: {
+        State *state = states.top();
+        states.pop();
+        Value returnValue = state->stack.top();
+        delete state;
+        states.top()->stack.push(returnValue);
+        return;
+      }
       case INVOKEVIRTUAL: {
-        cout << pop().intValue + 1 << endl;
+        // Is currently only used when System.out.println is called
+        cout << pop().intValue << endl;
+        state->pc += 2;
+        break;
+      }
+      case INVOKESTATIC: {
+        int methodRefIndex = getParametersAsInt();
+        size_t nameIndex = findNameIndex(methodRefIndex);
+        invoke(nameIndex);
         state->pc += 2;
         break;
       }
@@ -106,6 +153,13 @@ void Interpreter::eval() {
         int rhs = pop().intValue;
         int lhs = pop().intValue;
         int res = lhs + rhs;
+        push({.intValue = res});
+        break;
+      }
+      case ISUB: {
+        int rhs = pop().intValue;
+        int lhs = pop().intValue;
+        int res = lhs - rhs;
         push({.intValue = res});
         break;
       }
@@ -139,22 +193,36 @@ void Interpreter::eval() {
   }
 }
 
-void Interpreter::invoke(uint16_t nameIndex) {
+void Interpreter::invoke(size_t nameIndex) {
   Method methodToInvoke = program.methods[nameIndex];
   stack<Value> stack;
   map<size_t, Value> locals;
   if (!states.empty()) {
     vector<Type> argTypes = methodToInvoke.argTypes;
-    size_t key = 0;
-    for (Type type : argTypes) {
+    size_t key = sizeOf(argTypes);
+    for (int i = argTypes.size() - 1; i >= 0; i--) {
+      Type type = argTypes[i];
+      key -= sizeOf(type);
       Value toAdd = pop();
       locals[key] = toAdd;
-      key += sizeOf(type);
     }
   }
+#ifdef DEBUG_PRINT
+  cout << "method " << nameIndex << " stack " << stack.size() << " locals "
+       << locals[0].intValue << " " << locals[1].intValue << endl;
+#endif
   State *state = new State{0, nameIndex, stack, locals};
   states.push(state);
   eval();
+}
+
+size_t Interpreter::findNameIndex(size_t methodRef) {
+  ConstantMethodRef *constantMethodRef =
+      (ConstantMethodRef *)program.constantPool[methodRef];
+  ConstantNameAndType *constantNameAndType =
+      (ConstantNameAndType *)
+          program.constantPool[constantMethodRef->nameAndTypeIndex];
+  return constantNameAndType->nameIndex;
 }
 
 void Interpreter::load(size_t var) {
@@ -183,6 +251,14 @@ int Interpreter::getParametersAsInt() {
   uint8_t byte2 = code[state->pc + 2];
   short res = byte1 << 8 | byte2;
   return (int)res;
+}
+
+size_t Interpreter::sizeOf(vector<Type> argTypes) {
+  size_t size = 0;
+  for (Type type : argTypes) {
+    size += sizeOf(type);
+  }
+  return size;
 }
 
 size_t Interpreter::sizeOf(Type type) {

@@ -3,7 +3,9 @@ using namespace std;
 
 string ConstantClass::info() { return "ConstantClass: "; }
 string ConstantFieldRef::info() { return "ConstantFieldRef: "; }
-string ConstantMethodRef::info() { return "ConstantMethodRef: "; }
+string ConstantMethodRef::info() {
+  return "ConstantMethodRef: " + to_string(nameAndTypeIndex);
+}
 string ConstantInterfaceMethodRef::info() {
   return "ConstantInterfaceMethodRef: ";
 }
@@ -12,7 +14,9 @@ string ConstantInteger::info() { return "ConstantInteger: "; }
 string ConstantFloat::info() { return "ConstantFloat: "; }
 string ConstantLong::info() { return "ConstantLong: "; }
 string ConstantDouble::info() { return "ConstantDouble: "; }
-string ConstantNameAndType::info() { return "ConstantNameAndType: "; }
+string ConstantNameAndType::info() {
+  return "ConstantNameAndType: " + to_string(nameIndex);
+}
 string ConstantUtf8::info() { return "ConstantUtf8: " + bytes; }
 string ConstantMethodHandle::info() { return "ConstantMethodHandle: "; }
 string ConstantMethodType::info() { return "ConstantMethodType: "; }
