@@ -20,9 +20,8 @@ To build and run project from root:
 ---
 
 TODO:
+./include/JVM/ByteCodes.hpp:260:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
+./src/Interpreter.cpp:20:  // TODO: Standardize execption handing.
+./src/Assembler.cpp:92:      // TODO: Find memory location by regex instead.
 
-src/Assembler.cpp: better parsing of memory location
-
-README.md: Automate updating of TODO-list here with git push hook.
-
-Created by Simon Kärrman and Jakob Erlandsson
+Created by Simon Kärrman och Jakob Erlandsson
