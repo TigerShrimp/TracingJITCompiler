@@ -46,7 +46,7 @@ ClassFile Parser::parse(vector<uint8_t> classBytes) {
       parseAttributeInfo(classCursor, cpInfo)
       // }
   };
-  assert(classCursor == classBytes.end());
+  assert(classCursor == classBytes.end() && "Entire classfile not read");
   return cf;
 }
 

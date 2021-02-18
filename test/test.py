@@ -14,7 +14,12 @@ for class_file in class_files:
         ['../build/TigerShrimp', class_file], capture_output=True)
     tiger_shrimp_out = tiger_shrimp_process.stdout.decode('utf-8')
     tiger_shrimp_err = tiger_shrimp_process.stderr
-    if(java_out == tiger_shrimp_out):
+
+    java_lines = [round(float(j), 3) for j in java_out.split('\n') if j]
+    tiger_shrimp_lines = [round(float(t), 3)
+                          for t in tiger_shrimp_out.split('\n') if t]
+
+    if(java_lines == tiger_shrimp_lines):
         print('\033[92mTest {} passed :D \033[0m'.format(class_name))
         tests_passed += 1
     elif tiger_shrimp_err:
