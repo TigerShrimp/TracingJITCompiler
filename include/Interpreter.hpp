@@ -42,6 +42,7 @@ class Interpreter {
   // Helper functions
   Value pop();
   void push(Value);
+  std::string toString(Value);
   int getParametersAsInt();
   size_t sizeOf(std::vector<Type>);
   size_t sizeOf(Type);

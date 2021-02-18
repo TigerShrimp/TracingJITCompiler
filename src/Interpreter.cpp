@@ -30,7 +30,10 @@ void Interpreter::eval() {
     Mnemonic mnemonic =
         static_cast<Mnemonic>(program.methods[state->method].code[state->pc]);
 #ifdef DEBUG_PRINT
-    cout << byteCodeNames.at(mnemonic) << ": " << state->pc << endl;
+    cout << byteCodeNames.at(mnemonic) << ": " << state->pc
+         << " - Top of stack: "
+         << (!state->stack.empty() ? toString(state->stack.top()) : "-")
+         << endl;
 #endif  // DEBUG_PRINT
     switch (mnemonic) {
       // Constants loading
@@ -104,12 +107,30 @@ void Interpreter::eval() {
         break;
       }
       // Loading
+      case LDC: {
+        int index = code[state->pc + 1];
+        CPInfo *cpInfoEntry = program.constantPool[index];
+        if (cpInfoEntry->info() == "ConstantFloat: ") {
+          ConstantFloat *constantFloat = (ConstantFloat *)cpInfoEntry;
+          float floatRes;
+          memcpy(&floatRes, &constantFloat->bytes, sizeof(float));
+          push(Value(floatRes));
+        } else {  // ConstantInt
+          ConstantInteger *constantInteger = (ConstantInteger *)cpInfoEntry;
+          int intRes = (int)constantInteger->bytes;
+          push(Value(intRes));
+        }
+        state->pc += 1;
+        break;
+      }
       case LDC2_W: {
         // TODO: Make Long/Double constants more general
         int index = getParametersAsInt();
         CPInfo *cpInfoEntry = program.constantPool[index];
         if (cpInfoEntry->info() == "ConstantDouble: ") {
           ConstantDouble *constantDouble = (ConstantDouble *)cpInfoEntry;
+          // The high and low bytes are stored in different positions of the
+          // constant pool so they have to be combined into one 64-bit number
           long longRes = ((long)constantDouble->highBytes << 32) +
                          constantDouble->lowBytes;
           double doubleRes;
@@ -122,6 +143,15 @@ void Interpreter::eval() {
           push(Value(longRes));
         }
         state->pc += 2;
+        break;
+      }
+      case ILOAD:
+      case LLOAD:
+      case FLOAD:
+      case DLOAD: {
+        int index = code[state->pc + 1];
+        load(index);
+        state->pc += 1;
         break;
       }
       case ILOAD_0:
@@ -153,6 +183,22 @@ void Interpreter::eval() {
         break;
       }
       // Storing
+      case ISTORE:
+      case LSTORE:
+      case FSTORE:
+      case DSTORE: {
+        int index = code[state->pc + 1];
+        store(index);
+        state->pc += 1;
+        break;
+      }
+      case ISTORE_0:
+      case LSTORE_0:
+      case FSTORE_0:
+      case DSTORE_0: {
+        store(0);
+        break;
+      }
       case ISTORE_1:
       case LSTORE_1:
       case FSTORE_1:
@@ -236,22 +282,7 @@ void Interpreter::eval() {
       case INVOKEVIRTUAL: {
         // Is currently only used when System.out.println is called
         Value val = pop();
-        switch (val.type.type) {
-          case Int:
-            cout << val.val.intValue << endl;
-            break;
-          case Long:
-            cout << val.val.longValue << endl;
-            break;
-          case Float:
-            cout << val.val.floatValue << endl;
-            break;
-          case Double:
-            cout << std::setprecision(17) << val.val.doubleValue << endl;
-            break;
-          default:
-            cout << "VA?!?" << endl;
-        }
+        cout << setprecision(17) << toString(val) << endl;
         state->pc += 2;
         break;
       }
@@ -308,6 +339,66 @@ void Interpreter::eval() {
         state->pc += 2;
         break;
       }
+      case I2L: {
+        Value val = pop();
+        push(Value((long)val.val.intValue));
+        break;
+      }
+      case I2F: {
+        Value val = pop();
+        push(Value((float)val.val.intValue));
+        break;
+      }
+      case I2D: {
+        Value val = pop();
+        push(Value((double)val.val.intValue));
+        break;
+      }
+      case L2I: {
+        Value val = pop();
+        push(Value((int)val.val.longValue));
+        break;
+      }
+      case L2F: {
+        Value val = pop();
+        push(Value((float)val.val.longValue));
+        break;
+      }
+      case L2D: {
+        Value val = pop();
+        push(Value((double)val.val.longValue));
+        break;
+      }
+      case F2I: {
+        Value val = pop();
+        push(Value((int)val.val.floatValue));
+        break;
+      }
+      case F2L: {
+        Value val = pop();
+        push(Value((long)val.val.floatValue));
+        break;
+      }
+      case F2D: {
+        Value val = pop();
+        push(Value((double)val.val.floatValue));
+        break;
+      }
+      case D2I: {
+        Value val = pop();
+        push(Value((int)val.val.doubleValue));
+        break;
+      }
+      case D2L: {
+        Value val = pop();
+        push(Value((long)val.val.doubleValue));
+        break;
+      }
+      case D2F: {
+        Value val = pop();
+        push(Value((float)val.val.doubleValue));
+        break;
+      }
       // Misc
       case GETSTATIC: {
         // int index = getParametersAsInt();
@@ -341,7 +432,12 @@ void Interpreter::invoke(size_t nameIndex) {
       key -= sizeOf(type);
       Value toAdd = pop();
       locals[key] = toAdd;
+#ifdef DEBUG_PRINT
+      cout << "Arg addr: " << key << " = " << toString(toAdd) << endl;
+
+#endif
     }
+    assert(key == 0 && "Last (first) argument should end up in the begining");
   }
 #ifdef DEBUG_PRINTs
   cout << "method " << nameIndex << " stack " << stack.size() << " locals "
@@ -379,6 +475,21 @@ Value Interpreter::pop() {
 }
 
 void Interpreter::push(Value val) { states.top()->stack.push(val); }
+
+string Interpreter::toString(Value val) {
+  switch (val.type.type) {
+    case Int:
+      return to_string(val.val.intValue);
+    case Long:
+      return to_string(val.val.longValue);
+    case Float:
+      return to_string(val.val.floatValue);
+    case Double:
+      return to_string(val.val.doubleValue);
+    default:
+      return "VA?!?";
+  }
+}
 
 int Interpreter::getParametersAsInt() {
   State *state = states.top();

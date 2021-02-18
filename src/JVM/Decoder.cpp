@@ -70,6 +70,8 @@ Type Decoder::getTypeFromString(string typeString) {
   switch (typeString[0]) {
     case 'I':
       return {Int};
+    case 'F':
+      return {Float};
     case 'D':
       return {Double};
     case 'V':
