@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <streambuf>
 #include <string>
 #include <vector>
@@ -51,6 +52,9 @@ void assembleAssembly(string path) {
 }
 
 int main(int argc, char** args) {
+  std::stringstream stream;
+  stream << "Hej" << 100 << endl;
+  debugPrint(stream);
   switch (argc) {
     case 1:
       printUsage();
