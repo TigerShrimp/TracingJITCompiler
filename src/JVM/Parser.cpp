@@ -55,14 +55,10 @@ map<size_t, CPInfo*> Parser::parseConstantPoolInfo(
   uint16_t constantPoolCount = readU2(classCursor);
 
   map<size_t, CPInfo*> cpInfo;
-#ifdef DEBUG_PRINT
-  cout << "CP length: " << constantPoolCount << endl;
-#endif
+  DEBUG_PRINT("CP length: {} \n", constantPoolCount);
   for (size_t i = 1; i < constantPoolCount; i++) {
     uint8_t tag = readU1(classCursor);
-#ifdef DEBUG_PRINT
-    cout << "Tag parsed: " << (size_t)tag << endl;
-#endif
+    DEBUG_PRINT("Tag parsed: {} \n", (size_t)tag);
     switch (tag) {
       case ConstantClass::tagValue: {
         ConstantClass* constantClass = new ConstantClass();
@@ -141,9 +137,7 @@ map<size_t, CPInfo*> Parser::parseConstantPoolInfo(
         ConstantUtf8* constantUtf8 = new ConstantUtf8();
         uint16_t length = readU2(classCursor);
         constantUtf8->bytes = string(classCursor, classCursor + length);
-#ifdef DEBUG_PRINT
-        cout << constantUtf8->bytes << endl;
-#endif
+        DEBUG_PRINT("ConstantUtf8: {}", constantUtf8->bytes)
         advance(classCursor, length);
         cpInfo[i] = constantUtf8;
         break;
@@ -184,9 +178,7 @@ vector<uint16_t> Parser::parseInterfaces(
   for (int i = 0; i < interfacesCount; i++) {
     interfaces.push_back(readU2(classCursor));
   }
-#ifdef DEBUG_PRINT
-  cout << "Parsed: Interfaces" << endl;
-#endif
+  DEBUG_PRINT("Parsed Interfaces\n");
   return interfaces;
 }
 
@@ -202,9 +194,7 @@ vector<FieldInfo> Parser::parseFields(vector<uint8_t>::iterator& classCursor,
     fieldInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     fields.push_back(fieldInfo);
   }
-#ifdef DEBUG_PRINT
-  cout << "Parsed: Fields: " << fieldsCount << endl;
-#endif
+  DEBUG_PRINT("Parsed Fields: {}\n", fieldsCount);
   return fields;
 }
 vector<MethodInfo> Parser::parseMethods(vector<uint8_t>::iterator& classCursor,
@@ -219,9 +209,7 @@ vector<MethodInfo> Parser::parseMethods(vector<uint8_t>::iterator& classCursor,
     methodInfo.attributes = parseAttributeInfo(classCursor, cpInfo);
     methods.push_back(methodInfo);
   }
-#ifdef DEBUG_PRINT
-  cout << "Parsed: Methods: " << methodsCount << endl;
-#endif
+  DEBUG_PRINT("Parsed Methods: {}\n", methodsCount);
   return methods;
 }
 
@@ -229,16 +217,12 @@ map<string, AttributeInfo*> Parser::parseAttributeInfo(
     vector<uint8_t>::iterator& classCursor, map<size_t, CPInfo*>& cpInfo) {
   const uint16_t attributesCount = readU2(classCursor);
   map<string, AttributeInfo*> attributes;
-#ifdef DEBUG_PRINT
-  cout << "Attributes count: " << attributesCount << endl;
-#endif
+  DEBUG_PRINT("Attributes count: {}\n", attributesCount);
   for (int i = 0; i < attributesCount; i++) {
     AttributeInfo* ai = NULL;
     uint16_t attributeNameIndex = readU2(classCursor);
     ConstantUtf8* attributeName = (ConstantUtf8*)cpInfo[attributeNameIndex];
-#ifdef DEBUG_PRINT
-    cout << "AttributeName: " << attributeName->bytes << endl;
-#endif
+    DEBUG_PRINT("AttributeName: {}\n", attributeName->bytes);
     uint32_t attributeLength = readU4(classCursor);
     if (attributeName->bytes == ConstantValueAttribute::attributeName) {
       ConstantValueAttribute* constantValueAttribute =
@@ -349,9 +333,7 @@ map<string, AttributeInfo*> Parser::parseAttributeInfo(
       attributes[attributeName->bytes] = ai;
     }
   }
-#ifdef DEBUG_PRINT
-  cout << "Parsed: Attributes" << endl;
-#endif
+  DEBUG_PRINT("Parsed Attributes");
   return attributes;
 }
 
@@ -367,9 +349,7 @@ vector<VerificationInfo> Parser::parseVerificationInfo(
     }
     verifications.push_back(info);
   }
-#ifdef DEBUG_PRINT
-  cout << "Parsed: Verification" << endl;
-#endif
+  DEBUG_PRINT("Parsed Verification");
   return verifications;
 }
 

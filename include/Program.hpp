@@ -2,6 +2,7 @@
 #define PROGRAM_HPP
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
 #include "JVM/ByteCodes.hpp"
@@ -24,13 +25,13 @@ struct Method {
   std::vector<uint8_t> code;
   ConstantValueAttribute constant;
   StackMapTableAttribute stackMapTable;
-  void debugPrint();
+  std::string methodString();
 };
 
 struct Program {
   std::map<size_t, CPInfo*> constantPool;
   std::map<uint16_t, Method> methods;
-  void debugPrint();
+  std::string programString();
 };
 
 struct Value {
