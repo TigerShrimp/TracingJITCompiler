@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.19.0)
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 project(TigerShrimp)
+
+find_package(fmt)
 
 include_directories(include include/JVM)
 
@@ -20,3 +22,4 @@ Add_Executable(TigerShrimp main.cpp ${SOURCES} ${ASMJIT_SRC})
 
 # You still have to include asmjit dependencies.
 Target_Link_Libraries(TigerShrimp ${ASMJIT_DEPS})
+target_link_libraries(TigerShrimp fmt::fmt)

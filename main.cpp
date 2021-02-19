@@ -1,6 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <streambuf>
 #include <string>
 #include <vector>
@@ -29,10 +28,8 @@ void interpretJava(string path) {
   Decoder decoder;
   ClassFile cf = parser.parse(path);
   Program prg = decoder.decode(cf);
-#ifdef DEBUG_PRINT
-  cf.printContents();
-  prg.debugPrint();
-#endif
+  DEBUG_PRINT("{}", cf.contentsString());
+  DEBUG_PRINT("{}", prg.programString());
   Interpreter interpreter(prg);
   interpreter.interpret();
 }
@@ -52,9 +49,6 @@ void assembleAssembly(string path) {
 }
 
 int main(int argc, char** args) {
-  std::stringstream stream;
-  stream << "Hej" << 100 << endl;
-  debugPrint(stream);
   switch (argc) {
     case 1:
       printUsage();

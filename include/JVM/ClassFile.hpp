@@ -2,6 +2,7 @@
 #define JMM_CLASS_FILE_HPP
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -438,7 +439,7 @@ struct ClassFile {
   std::vector<MethodInfo> methods;
   //   uint16_t attributes_count;
   std::map<std::string, AttributeInfo*> attributes;
-  void printContents();
+  std::string contentsString();
 };
 
 #endif  // JMM_CLASS_FILE_HPP

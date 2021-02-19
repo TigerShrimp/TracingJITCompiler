@@ -2,14 +2,17 @@
 
 using namespace std;
 
-void Program::debugPrint() {
+string Program::programString() {
+  stringstream ss;
   for (auto method : methods) {
-    cout << ((ConstantUtf8 *)constantPool[method.first])->bytes << ":" << endl;
-    method.second.debugPrint();
+    ss << ((ConstantUtf8 *)constantPool[method.first])->bytes << ":" << endl;
+    ss << method.second.methodString();
   }
+  return ss.str();
 }
 
-void Method::debugPrint() {
+string Method::methodString() {
+  stringstream ss;
   for (int i = 0; i < code.size(); i++) {
     Mnemonic mnemonic = static_cast<Mnemonic>(code[i]);
     string s = "";
@@ -19,9 +22,9 @@ void Method::debugPrint() {
       s += to_string(code[i]);
       s += " ";
     }
-    cout << "  " << row << ": " << byteCodeNames.at(mnemonic) << " " << s
-         << endl;
+    ss << "  " << row << ": " << byteCodeNames.at(mnemonic) << " " << s << endl;
   }
+  return ss.str();
 }
 
 Value::Value() : Value(0){};

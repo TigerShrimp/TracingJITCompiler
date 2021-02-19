@@ -30,49 +30,51 @@ const string BootstrapMethodsAttribute::attributeName = "BootstrapMethods";
 const string NestHostAttribute::attributeName = "NestHost";
 const string NestMembersAttribute::attributeName = "NestMembers";
 
-void ClassFile::printContents() {
+string ClassFile::contentsString() {
+  stringstream ss;
   SourceFileAttribute* sfa =
       (SourceFileAttribute*)attributes[SourceFileAttribute::attributeName];
   ConstantUtf8* fileName = (ConstantUtf8*)constantPool[sfa->sourceFileIndex];
-  cout << "\n----- Class File (source: " << fileName->bytes
-       << ") contents: -----\n"
-       << endl;
-  cout << "Magic: " << hex << magic << dec << endl;
-  cout << "MinorVersion: " << minorVersion << endl;
-  cout << "MajorVersion: " << majorVersion << endl;
-  cout << "Constant Pool Info: " << constantPool.size() << endl;
+  ss << "\n----- Class File (source: " << fileName->bytes
+     << ") contents: -----\n"
+     << endl;
+  ss << "Magic: " << hex << magic << dec << endl;
+  ss << "MinorVersion: " << minorVersion << endl;
+  ss << "MajorVersion: " << majorVersion << endl;
+  ss << "Constant Pool Info: " << constantPool.size() << endl;
   for (auto cpInfo : constantPool) {
-    cout << " " << cpInfo.second->info() << endl;
+    ss << " " << cpInfo.second->info() << endl;
   }
-  cout << "AccessFlags: " << accessFlags << endl;
-  cout << "ThisClass: " << thisClass << endl;
-  cout << "SuperClass: " << superClass << endl;
-  cout << "Interfaces: " << interfaces.size() << endl;
+  ss << "AccessFlags: " << accessFlags << endl;
+  ss << "ThisClass: " << thisClass << endl;
+  ss << "SuperClass: " << superClass << endl;
+  ss << "Interfaces: " << interfaces.size() << endl;
   for (auto interface : interfaces) {
-    cout << " " << interface << endl;
+    ss << " " << interface << endl;
   }
-  cout << "Fields: " << fields.size() << endl;
+  ss << "Fields: " << fields.size() << endl;
   for (auto field : fields) {
-    cout << " " << constantPool[field.nameIndex]->info() << " - "
-         << constantPool[field.descriptorIndex]->info() << endl;
+    ss << " " << constantPool[field.nameIndex]->info() << " - "
+       << constantPool[field.descriptorIndex]->info() << endl;
   }
-  cout << "Methods: " << methods.size() << endl;
+  ss << "Methods: " << methods.size() << endl;
   for (auto method : methods) {
-    cout << " " << constantPool[method.nameIndex]->info() << " - "
-         << constantPool[method.descriptorIndex]->info() << endl;
+    ss << " " << constantPool[method.nameIndex]->info() << " - "
+       << constantPool[method.descriptorIndex]->info() << endl;
     CodeAttribute* ca =
         (CodeAttribute*)method.attributes[CodeAttribute::attributeName];
 
-    cout << "  Max Stack:" << ca->maxStack << endl;
-    cout << "  Max Locals:" << ca->maxLocals << endl;
-    cout << "  Attributes: " << ca->attributes.size() << endl;
-    cout << "  Code:" << endl;
-    cout << hex;
+    ss << "  Max Stack:" << ca->maxStack << endl;
+    ss << "  Max Locals:" << ca->maxLocals << endl;
+    ss << "  Attributes: " << ca->attributes.size() << endl;
+    ss << "  Code:" << endl;
+    ss << hex;
     for (auto byte : ca->code) {
-      cout << "   0x" << (size_t)byte << endl;
+      ss << "   0x" << (size_t)byte << endl;
     }
-    cout << dec;
+    ss << dec;
   }
-  cout << "Attributes: " << attributes.size() << endl;
-  cout << "\n----- End of Class File -----\n" << endl;
+  ss << "Attributes: " << attributes.size() << endl;
+  ss << "\n----- End of Class File -----\n" << endl;
+  return ss.str();
 }

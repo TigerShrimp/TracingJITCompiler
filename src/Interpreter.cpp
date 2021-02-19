@@ -29,12 +29,9 @@ void Interpreter::eval() {
   while (true) {
     Mnemonic mnemonic =
         static_cast<Mnemonic>(program.methods[state->method].code[state->pc]);
-#ifdef DEBUG_PRINT
-    cout << byteCodeNames.at(mnemonic) << ": " << state->pc
-         << " - Top of stack: "
-         << (!state->stack.empty() ? toString(state->stack.top()) : "-")
-         << endl;
-#endif  // DEBUG_PRINT
+    DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
+                state->pc,
+                !state->stack.empty() ? toString(state->stack.top()) : "-");
     switch (mnemonic) {
       // Constants loading
       case ICONST_M1: {
@@ -432,17 +429,12 @@ void Interpreter::invoke(size_t nameIndex) {
       key -= sizeOf(type);
       Value toAdd = pop();
       locals[key] = toAdd;
-#ifdef DEBUG_PRINT
-      cout << "Arg addr: " << key << " = " << toString(toAdd) << endl;
-
-#endif
+      DEBUG_PRINT("Arg addr: {} = {}\n", key, toString(toAdd));
     }
     assert(key == 0 && "Last (first) argument should end up in the begining");
   }
-#ifdef DEBUG_PRINTs
-  cout << "method " << nameIndex << " stack " << stack.size() << " locals "
-       << locals[0].val.intValue << " " << locals[1].val.intValue << endl;
-#endif
+  DEBUG_PRINT("method {} stack {} locals {} {}\n", nameIndex, stack.size(),
+              locals[0].val.intValue, locals[1].val.intValue);
   State *state = new State{0, nameIndex, stack, locals};
   states.push(state);
   eval();
