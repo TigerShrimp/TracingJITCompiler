@@ -32,7 +32,7 @@ TODO:
 - ./include/JVM/ByteCodes.hpp:262:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Interpreter.cpp:21:  // TODO: Standardize execption handing.
-- ./src/Interpreter.cpp:124:        // TODO: Make Long/Double constants more general
+- ./src/Interpreter.cpp:121:        // TODO: Make Long/Double constants more general
 - ./src/Assembler.cpp:92:      // TODO: Find memory location by regex instead.
 
 Created by Simon Kärrman och Jakob Erlandsson

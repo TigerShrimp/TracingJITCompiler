@@ -29,9 +29,6 @@ void Interpreter::eval() {
   while (true) {
     Mnemonic mnemonic =
         static_cast<Mnemonic>(program.methods[state->method].code[state->pc]);
-    DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
-                state->pc,
-                !state->stack.empty() ? toString(state->stack.top()) : "-");
     switch (mnemonic) {
       // Constants loading
       case ICONST_M1: {
@@ -413,6 +410,10 @@ void Interpreter::eval() {
         break;
       }
     }
+    DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
+                state->pc,
+                !state->stack.empty() ? toString(state->stack.top()) : "-");
+
     state->pc += 1;
   }
 }
