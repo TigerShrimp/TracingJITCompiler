@@ -5,7 +5,9 @@ using namespace std;
 string Program::programString() {
   stringstream ss;
   for (auto method : methods) {
-    ss << ((ConstantUtf8 *)constantPool[method.first])->bytes << ":" << endl;
+    ss << ((ConstantUtf8 *)constantPool[method.first])->bytes << "("
+       << method.first << "):" << endl;
+
     ss << method.second.methodString();
   }
   return ss.str();

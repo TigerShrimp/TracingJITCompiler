@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <stack>
 #include <string>
 
 #include "JVM/ByteCodes.hpp"
@@ -54,4 +55,11 @@ Value operator-(const Value&, const Value&);
 Value operator*(const Value&, const Value&);
 Value operator/(const Value&, const Value&);
 bool operator<(const Value&, const Value&);
+
+struct State {
+  size_t pc;
+  size_t method;
+  std::stack<Value> stack;
+  std::map<size_t, Value> locals;
+};
 #endif  // PROGRAM_HPP

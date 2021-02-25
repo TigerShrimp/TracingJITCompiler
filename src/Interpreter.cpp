@@ -2,7 +2,8 @@
 
 using namespace std;
 
-Interpreter::Interpreter(Program prg) : pc(0), program(prg), states(){};
+Interpreter::Interpreter(TraceHandler th, Program prg)
+    : program(prg), traceHandler(th), states(){};
 
 void Interpreter::interpret() {
   uint16_t main = findIndexOfMain();
@@ -27,6 +28,9 @@ void Interpreter::eval() {
   State *state = states.top();
   vector<uint8_t> code = program.methods[state->method].code;
   while (true) {
+    if (traceHandler.hasTrace(state)) {
+      state->pc = traceHandler.runTrace(state);
+    }
     Mnemonic mnemonic =
         static_cast<Mnemonic>(program.methods[state->method].code[state->pc]);
     switch (mnemonic) {
@@ -326,7 +330,7 @@ void Interpreter::eval() {
       }
       case IINC: {
         uint8_t index = code[state->pc + 1];
-        uint8_t constant = code[state->pc + 2];
+        int8_t constant = code[state->pc + 2];
         int value = state->locals[index].val.intValue;
         value += constant;
         state->locals[index].val.intValue = value;
@@ -413,7 +417,8 @@ void Interpreter::eval() {
     DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
                 state->pc,
                 !state->stack.empty() ? toString(state->stack.top()) : "-");
-
+    // TODO: change how we handle the pc to instead move it forward in different
+    // read functions similar to "readU1" in the parser
     state->pc += 1;
   }
 }

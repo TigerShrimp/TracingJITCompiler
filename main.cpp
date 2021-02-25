@@ -11,41 +11,48 @@
 #include "JVM/Decoder.hpp"
 #include "JVM/Parser.hpp"
 #include "MemoryHandler.hpp"
+#include "TraceHandler.hpp"
 
 using namespace std;
 
 void readFile(string, vector<string>&);
 
-void printUsage() { cout << "Usage: TigerShrimp file.asm|.class" << endl; }
+void printUsage() {
+  cout << "Usage: TigerShrimp (file.class) | (file.class file.asm "
+          "method_name_index (int) start_trace (int) end_trace (int))"
+       << endl;
+}
 
 void printError(string error, bool showUsage) {
   cerr << "TigerShrimp:\033[1;31m error: \033[0m" << error << endl;
   if (showUsage) printUsage();
 }
 
-void interpretJava(string path) {
+void interpretJava(string path, TraceHandler th) {
   Parser parser;
   Decoder decoder;
   ClassFile cf = parser.parse(path);
   Program prg = decoder.decode(cf);
   DEBUG_PRINT("{}", cf.contentsString());
   DEBUG_PRINT("{}", prg.programString());
-  Interpreter interpreter(prg);
+  Interpreter interpreter(th, prg);
   interpreter.interpret();
 }
 
-void assembleAssembly(string path) {
+TraceHandler assembleAssembly(string path, int methodIndex, int start,
+                              int end) {
   vector<string> asmRows;
   readFile(path, asmRows);
   for (auto row : asmRows) {
-    cout << row << endl;
+    DEBUG_PRINT("{}\n", row);
   }
   Assembler assembler;
   vector<uint8_t> traceBytes = assembler.assemble(asmRows);
   MemoryHandler memoryHandler;
   tracePointer tp = memoryHandler.writeTrace(traceBytes);
-  size_t res = tp.execute();
-  cout << "Res " << res << endl;
+  TraceHandler traceHandler;
+  traceHandler.insertTrace(tp, methodIndex, start, end);
+  return traceHandler;
 }
 
 int main(int argc, char** args) {
@@ -58,14 +65,25 @@ int main(int argc, char** args) {
       string path(args[1]);
       string extension = path.substr(path.find_last_of(".") + 1);
       if (extension == "class") {
-        interpretJava(path);
+        interpretJava(path, {});
       } else if (extension == "asm") {
-        assembleAssembly(path);
+        printError("Supportn't assemble assembly any more", true);
       }
       break;
     }
+    case 6: {
+      string javaPath(args[1]);
+      string asmPath(args[2]);
+      int methodIndex = stoi(args[3]);
+      int start = stoi(args[4]);
+      int end = stoi(args[5]);
+      TraceHandler traceHandler =
+          assembleAssembly(asmPath, methodIndex, start, end);
+      interpretJava(javaPath, traceHandler);
+      break;
+    }
     default:
-      printError("too many arguments", true);
+      printError("Numbern't of arguments", true);
       exit(EXIT_FAILURE);
       break;
   }

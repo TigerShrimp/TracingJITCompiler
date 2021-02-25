@@ -10,13 +10,7 @@
 #include "Definitions.hpp"
 #include "JVM/ByteCodes.hpp"
 #include "Program.hpp"
-
-struct State {
-  size_t pc;
-  size_t method;
-  std::stack<Value> stack;
-  std::map<size_t, Value> locals;
-};
+#include "TraceHandler.hpp"
 
 // TigerShrimp interpreter:
 // Interpreter for JVM byte-code.
@@ -25,12 +19,12 @@ struct State {
 // Magic.
 class Interpreter {
  public:
-  Interpreter(Program);
+  Interpreter(TraceHandler, Program);
   void interpret();
 
  private:
+  TraceHandler traceHandler;
   Program program;
-  size_t pc;
   std::stack<State*> states;
 
   size_t findIndexOfMain();

@@ -11,9 +11,9 @@ MemoryHandler::MemoryHandler(void) {
 }
 
 MemoryHandler::~MemoryHandler(void) {
-  for (auto mem : allocatedMemory) {
-    free(mem.startAddr);
-  }
+  // for (auto mem : allocatedMemory) {
+  //   free(mem.startAddr);
+  // }
 }
 
 tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
@@ -23,13 +23,13 @@ tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   }
   // Write the trace to memory
   uint8_t* startAddr = cursor;
-  cout << "Trace start address: " << (size_t)startAddr << endl;
+  DEBUG_PRINT("Trace start address: {}\n", startAddr)
 
   for (auto byte : traceBytes) {
-    printf("%02X", byte);
+    DEBUG_PRINT("{:02X}", byte);
     *(cursor++) = byte;
   }
-  cout << endl;
+  DEBUG_PRINT("\n")
   // Keep track of where the writing started,
   // connect the start address to a tracePointer and return
   tracePointer tp;

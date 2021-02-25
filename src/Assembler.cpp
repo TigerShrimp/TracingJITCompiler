@@ -66,7 +66,7 @@ static const ArgumentType getArgumentType(string argument) {
   ArgumentType arg;
   if (regex_match(argument.begin(), argument.end(), immReg)) {
     arg = ArgumentType::Imm;
-  } else if (regex_match(argument.begin(), argument.end(), memReg)) {
+  } else if (regex_match(argument.begin(), argument.end(), ptrReg)) {
     arg = ArgumentType::Mem;
   } else if (regex_match(argument.begin(), argument.end(), regReg)) {
     arg = ArgumentType::Reg;
@@ -89,10 +89,11 @@ static const asmjit::Operand convert(Argument arg) {
       return reg;
     }
     case ArgumentType::Mem: {
-      // TODO: Find memory location by regex instead.
-      string offsetStr = arg.val.substr(4, arg.val.length() - 5);
-      int offset = stoi(offsetStr);
-      asmjit::x86::Mem mem = asmjit::x86::qword_ptr(asmjit::x86::rbp, offset);
+      smatch matches;
+      regex_search(arg.val, matches, ptrReg);
+      asmjit::x86::Gp base = lookupRegisters.at(matches[1]);
+      int offset = matches[2] == "" ? 0 : stoi(matches[2]);
+      asmjit::x86::Mem mem = asmjit::x86::qword_ptr(base, offset);
       return mem;
     }
     case ArgumentType::Imm: {

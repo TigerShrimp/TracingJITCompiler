@@ -10,7 +10,7 @@
 #include "Assembler.hpp"
 #include "Definitions.hpp"
 
-typedef size_t (*pfunc)(void);
+typedef long (*pfunc)(void **);
 
 union tracePointer {
   pfunc execute;
