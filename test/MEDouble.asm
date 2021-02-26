@@ -1,4 +1,4 @@
-; Run with 27 2 18
+; Run with 31 4 22
 ENTER 0, 0
 ; init
 MOV RAX, [RDI+8]
