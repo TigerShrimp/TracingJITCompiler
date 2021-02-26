@@ -16,6 +16,12 @@ vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
 
   for (auto asmRow : asmRows) {
     transform(asmRow.begin(), asmRow.end(), asmRow.begin(), ::toupper);
+    size_t commentStart = asmRow.find(';');
+    if (commentStart == 0)
+      continue;
+    else if (commentStart != string::npos) {
+      asmRow = asmRow.substr(0, commentStart);
+    }
     replace(asmRow.begin(), asmRow.end(), ',', ' ');
     vector<string> instParts;
     string part;
