@@ -91,20 +91,25 @@ static const Argument getArgument(string argString) {
 static const asmjit::Operand convert(Argument arg) {
   switch (arg.type) {
     case ArgumentType::Reg: {
-      asmjit::x86::Gp reg = lookupRegisters.at(arg.val);
+      asmjit::x86::Reg reg = lookupRegisters.at(arg.val);
       return reg;
     }
     case ArgumentType::Mem: {
       smatch matches;
       regex_search(arg.val, matches, ptrReg);
-      asmjit::x86::Gp base = lookupRegisters.at(matches[1]);
+      asmjit::x86::Gp base =
+          lookupRegisters.at(matches[1]).as<asmjit::x86::Gp>();
       int offset = matches[2] == "" ? 0 : stoi(matches[2]);
       asmjit::x86::Mem mem = asmjit::x86::qword_ptr(base, offset);
       return mem;
     }
     case ArgumentType::Imm: {
       asmjit::Imm imm;
-      imm.setValue(stoi(arg.val));
+      if (arg.val.find('.') != string::npos) {
+        imm.setValue(stod(arg.val));
+      } else {
+        imm.setValue(stoi(arg.val));
+      }
       return imm;
     }
   }
