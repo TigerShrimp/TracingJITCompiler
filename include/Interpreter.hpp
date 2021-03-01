@@ -19,25 +19,17 @@
 // Magic.
 class Interpreter {
  public:
-  Interpreter(TraceHandler, Program);
-  void interpret();
+  void eval(Program*);
 
  private:
   TraceHandler traceHandler;
-  Program program;
-  std::stack<State*> states;
 
-  size_t findIndexOfMain();
-  void invoke(size_t);
-  size_t findNameIndex(size_t);
-  void eval();
-  void load(size_t);
-  void store(size_t);
+  size_t findIndexOfMain(Program*);
+  void invoke(Program*, size_t);
+  size_t findNameIndex(Program*, size_t);
   // Helper functions
-  Value pop();
-  void push(Value);
   std::string toString(Value);
-  int getParametersAsInt();
+  int readParametersAsInt(Program*);
   size_t sizeOf(std::vector<Type>);
   size_t sizeOf(Type);
 };

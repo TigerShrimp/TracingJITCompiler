@@ -29,7 +29,41 @@ string Method::methodString() {
   return ss.str();
 }
 
+uint8_t Program::peek(size_t lookAhead) {
+  return methods[states.top()->method].code[states.top()->pc + lookAhead];
+}
+
+uint8_t Program::readNext() {
+  uint8_t nextByte = peek(0);
+  states.top()->pc++;
+  return nextByte;
+}
+
+void Program::jump(int diff, int parametersRead) {
+  states.top()->pc += diff - parametersRead;
+}
+void Program::jump(int diff) { jump(diff, 0); }
+
+void Program::push(Value val) { states.top()->stack.push(val); }
+
+Value Program::pop() {
+  Value val = states.top()->stack.top();
+  states.top()->stack.pop();
+  return val;
+}
+
+void Program::store(int var) {
+  Value val = pop();
+  states.top()->locals[var] = val;
+}
+
+void Program::load(int var) {
+  Value val = states.top()->locals[var];
+  push(val);
+}
+
 Value::Value() : Value(0){};
+
 Value::Value(int value) {
   type = {Int};
   val = {.intValue = value};

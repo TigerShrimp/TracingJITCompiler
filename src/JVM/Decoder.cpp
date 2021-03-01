@@ -2,8 +2,9 @@
 
 using namespace std;
 
-Program Decoder::decode(ClassFile classFile) {
-  Program prg = {classFile.constantPool};
+Program* Decoder::decode(ClassFile classFile) {
+  Program* prg = new Program();
+  prg->constantPool = classFile.constantPool;
   map<uint16_t, Method> methods;
   for (MethodInfo methodInfo : classFile.methods) {
     Method method = {methodInfo.nameIndex};
@@ -29,7 +30,7 @@ Program Decoder::decode(ClassFile classFile) {
     methods[methodInfo.nameIndex] = method;
   }
 
-  prg.methods = methods;
+  prg->methods = methods;
   return prg;
 }
 

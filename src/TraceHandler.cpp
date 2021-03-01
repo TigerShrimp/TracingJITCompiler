@@ -22,7 +22,7 @@ size_t TraceHandler::runTrace(State* state) {
     index++;
   }
   Trace trace = traces[state->method][state->pc];
-  DEBUG_PRINT("Will run trace at {}\n", trace.tracePointer.startAddr);
+  DEBUG_PRINT("Will run trace at {}\n", (void*)&trace.tracePointer.startAddr);
   size_t exitPoint = trace.tracePointer.execute(args);
   free(args);
   return trace.exitPoints[exitPoint];

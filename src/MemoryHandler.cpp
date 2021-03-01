@@ -2,7 +2,7 @@
 
 using namespace std;
 
-MemoryHandler::MemoryHandler(void) {
+MemoryHandler::MemoryHandler() {
   pageSize = sysconf(_SC_PAGE_SIZE);
   if (pageSize == -1) {
     perror("Page size error");
@@ -10,10 +10,12 @@ MemoryHandler::MemoryHandler(void) {
   }
 }
 
-MemoryHandler::~MemoryHandler(void) {
-  // for (auto mem : allocatedMemory) {
-  //   free(mem.startAddr);
-  // }
+void MemoryHandler::freeTraces() {
+  DEBUG_PRINT("Free trace memory\n")
+  for (auto mem : allocatedMemory) {
+    free(mem.startAddr);
+  }
+  allocatedMemory.clear();
 }
 
 tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {

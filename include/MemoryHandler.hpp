@@ -25,8 +25,8 @@ struct Memory {
 class MemoryHandler {
  public:
   MemoryHandler();
-  ~MemoryHandler();
 
+  void freeTraces();
   tracePointer writeTrace(std::vector<uint8_t>);
 
  private:

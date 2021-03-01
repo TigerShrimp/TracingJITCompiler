@@ -15,7 +15,7 @@ static const std::regex typesRegex("\\(([^\\)]*)\\)([^$]+)");
 
 class Decoder {
  public:
-  Program decode(ClassFile);
+  Program* decode(ClassFile);
 
  private:
   void parseTypes(CPInfo*, Method&);

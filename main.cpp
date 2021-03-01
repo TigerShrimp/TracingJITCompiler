@@ -6,11 +6,11 @@
 
 #include "Assembler.hpp"
 #include "Definitions.hpp"
-#include "Interpreter.hpp"
 #include "JVM/ClassFile.hpp"
 #include "JVM/Decoder.hpp"
 #include "JVM/Parser.hpp"
 #include "MemoryHandler.hpp"
+#include "RunTime.hpp"
 #include "TraceHandler.hpp"
 
 using namespace std;
@@ -28,19 +28,18 @@ void printError(string error, bool showUsage) {
   if (showUsage) printUsage();
 }
 
-void interpretJava(string path, TraceHandler th) {
+void interpretJava(string path, RunTime runTime) {
   Parser parser;
   Decoder decoder;
   ClassFile cf = parser.parse(path);
-  Program prg = decoder.decode(cf);
+  Program* prg = decoder.decode(cf);
   DEBUG_PRINT("{}", cf.contentsString());
-  DEBUG_PRINT("{}", prg.programString());
-  Interpreter interpreter(th, prg);
-  interpreter.interpret();
+  DEBUG_PRINT("{}", prg->programString());
+
+  runTime.run(prg);
 }
 
-TraceHandler assembleAssembly(string path, int methodIndex, int start,
-                              int end) {
+RunTime assembleAssembly(string path, int methodIndex, int start, int end) {
   vector<string> asmRows;
   readFile(path, asmRows);
   for (auto row : asmRows) {
@@ -48,11 +47,7 @@ TraceHandler assembleAssembly(string path, int methodIndex, int start,
   }
   Assembler assembler;
   vector<uint8_t> traceBytes = assembler.assemble(asmRows);
-  MemoryHandler memoryHandler;
-  tracePointer tp = memoryHandler.writeTrace(traceBytes);
-  TraceHandler traceHandler;
-  traceHandler.insertTrace(tp, methodIndex, start, end);
-  return traceHandler;
+  return RunTime(traceBytes, methodIndex, start, end);
 }
 
 int main(int argc, char** args) {
@@ -77,9 +72,8 @@ int main(int argc, char** args) {
       int methodIndex = stoi(args[3]);
       int start = stoi(args[4]);
       int end = stoi(args[5]);
-      TraceHandler traceHandler =
-          assembleAssembly(asmPath, methodIndex, start, end);
-      interpretJava(javaPath, traceHandler);
+      RunTime rt = assembleAssembly(asmPath, methodIndex, start, end);
+      interpretJava(javaPath, rt);
       break;
     }
     default:

@@ -31,8 +31,8 @@ TODO:
 
 - ./include/JVM/ByteCodes.hpp:262:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
-- ./src/Interpreter.cpp:22:  // TODO: Standardize execption handing.
-- ./src/Interpreter.cpp:125:        // TODO: Make Long/Double constants more general
-- ./src/Interpreter.cpp:420:    // TODO: change how we handle the pc to instead move it forward in different
+- ./src/Interpreter.cpp:94:      // TODO: Make Long/Double constants more general
+- ./src/Interpreter.cpp:384:  // TODO: change how we handle the pc to instead move it forward in different
+- ./src/RunTime.cpp:47:  // TODO: Standardize execption handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

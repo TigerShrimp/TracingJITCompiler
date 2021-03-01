@@ -16,25 +16,6 @@ struct Type {
   Type* subType;
 };
 
-struct Method {
- public:
-  uint16_t nameIndex;
-  Type retType;
-  std::vector<Type> argTypes;
-  uint16_t maxStack;
-  uint16_t maxLocals;
-  std::vector<uint8_t> code;
-  ConstantValueAttribute constant;
-  StackMapTableAttribute stackMapTable;
-  std::string methodString();
-};
-
-struct Program {
-  std::map<size_t, CPInfo*> constantPool;
-  std::map<uint16_t, Method> methods;
-  std::string programString();
-};
-
 struct Value {
   Type type;
   union {
@@ -62,4 +43,33 @@ struct State {
   std::stack<Value> stack;
   std::map<size_t, Value> locals;
 };
+
+struct Method {
+ public:
+  uint16_t nameIndex;
+  Type retType;
+  std::vector<Type> argTypes;
+  uint16_t maxStack;
+  uint16_t maxLocals;
+  std::vector<uint8_t> code;
+  ConstantValueAttribute constant;
+  StackMapTableAttribute stackMapTable;
+  std::string methodString();
+};
+
+struct Program {
+  std::map<size_t, CPInfo*> constantPool;
+  std::map<uint16_t, Method> methods;
+  std::stack<State*> states;
+  uint8_t peek(size_t);
+  uint8_t readNext();
+  void jump(int);
+  void jump(int, int);
+  void push(Value);
+  Value pop();
+  void store(int);
+  void load(int);
+  std::string programString();
+};
+
 #endif  // PROGRAM_HPP

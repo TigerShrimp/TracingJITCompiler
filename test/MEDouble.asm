@@ -1,7 +1,7 @@
 ; Run with 31 4 22
 ENTER 0, 0
 ; init
-MOV RAX, [RDI+8]
+MOV RAX, [RDI]
 MOVQ XMM0, [RAX]
 ; d += 2.4;
 MOV RAX, 2.4
@@ -16,7 +16,7 @@ MOV RAX, 2.5
 MOVQ XMM1, RAX
 SUBSD XMM0, XMM1
 ; Bailout
-MOV RAX, [RDI+8]
+MOV RAX, [RDI]
 MOVQ [RAX], XMM0
 MOV RAX, 0 ; Exit code
 LEAVE
