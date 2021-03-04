@@ -4,9 +4,11 @@
 #include <stack>
 #include <vector>
 
+#include "ByteCodes.hpp"
 #include "Definitions.hpp"
 #include "Interpreter.hpp"
 #include "MemoryHandler.hpp"
+#include "Profiler.hpp"
 #include "Program.hpp"
 #include "TraceHandler.hpp"
 
@@ -18,6 +20,7 @@ class RunTime {
 
  private:
   Interpreter interpreter;
+  Profiler profiler;
   MemoryHandler memoryHandler;
   TraceHandler traceHandler;
 

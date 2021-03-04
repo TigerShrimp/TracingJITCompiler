@@ -17,10 +17,16 @@ void RunTime::run(Program *program) {
   // will terminate.
   while (!program->states.empty()) {
     State *state = program->states.top();
+    profiler.note(state->method, state->pc);
     if (recordingTrace()) {
       cout << "not implemented yet" << endl;
     } else if (traceHandler.hasTrace(state)) {
       state->pc = traceHandler.runTrace(state);
+    } else if (profiler.isHot(state->method, state->pc)) {
+      DEBUG_PRINT("Hot loop found: {}, {}, {}\n", state->method, state->pc,
+                  byteCodeNames.at(static_cast<Mnemonic>(
+                      program->methods[state->method].code[state->pc])))
+      break;
     } else
       interpreter.eval(program);
   }

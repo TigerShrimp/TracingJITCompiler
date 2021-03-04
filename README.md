@@ -33,6 +33,6 @@ TODO:
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Interpreter.cpp:94:      // TODO: Make Long/Double constants more general
 - ./src/Interpreter.cpp:384:  // TODO: change how we handle the pc to instead move it forward in different
-- ./src/RunTime.cpp:47:  // TODO: Standardize execption handing.
+- ./src/RunTime.cpp:53:  // TODO: Standardize execption handing.
 
 Created by Simon Kärrman och Jakob Erlandsson
