@@ -5,6 +5,8 @@ using namespace std;
 void Interpreter::eval(Program *program) {
   State *state = program->states.top();
   Mnemonic mnemonic = static_cast<Mnemonic>(program->readNext());
+  DEBUG_PRINT("{}: - Top of stack: {}\n", byteCodeNames.at(mnemonic),
+              !state->stack.empty() ? toString(state->stack.top()) : "-");
   switch (mnemonic) {
     // Constants loading
     case ICONST_M1: {
@@ -378,11 +380,6 @@ void Interpreter::eval(Program *program) {
       break;
     }
   }
-  DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
-              state->pc.instructionIndex,
-              !state->stack.empty() ? toString(state->stack.top()) : "-");
-  // TODO: change how we handle the pc to instead move it forward in different
-  // read functions similar to "readU1" in the parser
 }
 
 void Interpreter::invoke(Program *program, size_t nameIndex) {

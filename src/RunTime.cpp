@@ -23,7 +23,9 @@ void RunTime::run(Program *program) {
       cout << "not implemented yet" << endl;
     } else if (traceHandler.hasTrace(state->pc)) {
       traceHandler.runTrace(state);
-    } else if (profiler.isHot(state->pc)) {
+    } else if (false &&
+               profiler.isHot(state->pc)) {  // False for now to not prohibit
+                                             // interpreter evaluation
       DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
                   state->pc.instructionIndex);
       break;
