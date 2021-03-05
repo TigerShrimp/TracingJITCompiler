@@ -30,17 +30,18 @@ string Method::methodString() {
 }
 
 uint8_t Program::peek(size_t lookAhead) {
-  return methods[states.top()->method].code[states.top()->pc + lookAhead];
+  return methods[states.top()->pc.methodIndex]
+      .code[states.top()->pc.instructionIndex + lookAhead];
 }
 
 uint8_t Program::readNext() {
   uint8_t nextByte = peek(0);
-  states.top()->pc++;
+  states.top()->pc.instructionIndex++;
   return nextByte;
 }
 
 void Program::jump(int diff, int parametersRead) {
-  states.top()->pc += diff - parametersRead;
+  states.top()->pc.instructionIndex += diff - parametersRead;
 }
 void Program::jump(int diff) { jump(diff, 0); }
 
@@ -60,6 +61,11 @@ void Program::store(int var) {
 void Program::load(int var) {
   Value val = states.top()->locals[var];
   push(val);
+}
+
+bool operator<(const ProgramCounter &lhs, const ProgramCounter &rhs) {
+  return (lhs.methodIndex == rhs.methodIndex &&
+          lhs.instructionIndex < rhs.instructionIndex);
 }
 
 Value::Value() : Value(0){};

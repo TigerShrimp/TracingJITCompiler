@@ -379,7 +379,7 @@ void Interpreter::eval(Program *program) {
     }
   }
   DEBUG_PRINT("{}: {} - Top of stack: {}\n", byteCodeNames.at(mnemonic),
-              state->pc,
+              state->pc.instructionIndex,
               !state->stack.empty() ? toString(state->stack.top()) : "-");
   // TODO: change how we handle the pc to instead move it forward in different
   // read functions similar to "readU1" in the parser
@@ -401,7 +401,7 @@ void Interpreter::invoke(Program *program, size_t nameIndex) {
   assert(key == 0 && "Last (first) argument should end up in the begining");
   DEBUG_PRINT("method {} stack {} locals {} {}\n", nameIndex, stack.size(),
               locals[0].val.intValue, locals[1].val.intValue);
-  State *state = new State{0, nameIndex, stack, locals};
+  State *state = new State{{0, nameIndex}, stack, locals};
   program->states.push(state);
 }
 

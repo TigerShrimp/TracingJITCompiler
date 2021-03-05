@@ -37,9 +37,15 @@ Value operator*(const Value&, const Value&);
 Value operator/(const Value&, const Value&);
 bool operator<(const Value&, const Value&);
 
+struct ProgramCounter {
+  size_t instructionIndex;
+  size_t methodIndex;
+};
+
+bool operator<(const ProgramCounter&, const ProgramCounter&);
+
 struct State {
-  size_t pc;
-  size_t method;
+  ProgramCounter pc;
   std::stack<Value> stack;
   std::map<size_t, Value> locals;
 };

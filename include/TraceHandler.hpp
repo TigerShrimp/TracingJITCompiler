@@ -10,12 +10,12 @@ struct Trace {
 
 class TraceHandler {
  public:
-  bool hasTrace(State*);
-  size_t runTrace(State*);
+  bool hasTrace(ProgramCounter);
+  void runTrace(State*);
   void insertTrace(tracePointer, size_t, size_t, size_t);
 
  private:
-  std::map<size_t, std::map<size_t, Trace> > traces;
+  std::map<ProgramCounter, Trace> traces;
 };
 
 #endif  // TRACEHANDLER_HPP

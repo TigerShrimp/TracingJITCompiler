@@ -1,13 +1,12 @@
 #include "Profiler.hpp"
 
-void Profiler::note(size_t methodIndex, size_t pc) {
-  if (methodIndex == lastMethod && pc < lastPc) {
-    loopRecord[methodIndex][pc] += 1;
+void Profiler::note(ProgramCounter pc) {
+  if (pc < lastPc) {
+    loopRecord[pc] += 1;
   }
   lastPc = pc;
-  lastMethod = methodIndex;
 }
 
-bool Profiler::isHot(size_t methodIndex, size_t pc) {
-  return loopRecord[methodIndex][pc] > hotThreshold;
+bool Profiler::isHot(ProgramCounter pc) {
+  return loopRecord[pc] > hotThreshold;
 }

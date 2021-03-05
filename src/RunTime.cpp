@@ -16,16 +16,16 @@ void RunTime::run(Program *program) {
   // Returning from main means the program stack will be empty and the program
   // will terminate.
   while (!program->states.empty()) {
+    DEBUG_PRINT("States: {}\n", program->states.size());
     State *state = program->states.top();
-    profiler.note(state->method, state->pc);
+    profiler.note(state->pc);
     if (recordingTrace()) {
       cout << "not implemented yet" << endl;
-    } else if (traceHandler.hasTrace(state)) {
-      state->pc = traceHandler.runTrace(state);
-    } else if (profiler.isHot(state->method, state->pc)) {
-      DEBUG_PRINT("Hot loop found: {}, {}, {}\n", state->method, state->pc,
-                  byteCodeNames.at(static_cast<Mnemonic>(
-                      program->methods[state->method].code[state->pc])))
+    } else if (traceHandler.hasTrace(state->pc)) {
+      traceHandler.runTrace(state);
+    } else if (profiler.isHot(state->pc)) {
+      DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
+                  state->pc.instructionIndex);
       break;
     } else
       interpreter.eval(program);
