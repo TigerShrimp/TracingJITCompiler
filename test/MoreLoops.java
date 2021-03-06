@@ -1,13 +1,14 @@
 public class MoreLoops {
   public static void main(String[] args) {
-    for (int i = 0; i < 10; i++) {
-      System.out.println(1);
+    int i = 0, j = 0, k = 0;
+    for (; i < 10; i++) {
+      System.out.println(i);
     }
-    for (int i = 0; i < 10; i++) {
-      System.out.println(1);
+    for (; j < 10; j++) {
+      System.out.println(j);
     }
-    for (int i = 0; i < 10; i++) {
-      System.out.println(1);
+    for (; k < 10; k++) {
+      System.out.println(k);
     }
   }
 }
