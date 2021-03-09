@@ -29,11 +29,11 @@ To build and run project from root:
 
 TODO:
 
-- ./include/JVM/ByteCodes.hpp:262:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
+- ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Interpreter.cpp:358:      // TODO: Make Long/Double constants more general
-- ./src/RunTime.cpp:24:      // TODO: note is probably not a very good name.
-- ./src/RunTime.cpp:29:        // TODO: Initiate trace recording
-- ./src/RunTime.cpp:59:  // TODO: Standardize exception handing.
+- ./src/RunTime.cpp:26:      // TODO: note is probably not a very good name.
+- ./src/RunTime.cpp:35:          // TODO: Recording done, compile trace!
+- ./src/RunTime.cpp:63:  // TODO: Standardize exception handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

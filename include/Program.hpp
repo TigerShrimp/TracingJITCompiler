@@ -29,6 +29,7 @@ struct Value {
   Value(long);
   Value(float);
   Value(double);
+  std::string toString();
 };
 
 Value operator+(const Value&, const Value&);
@@ -43,6 +44,12 @@ struct ProgramCounter {
 };
 
 bool operator<(const ProgramCounter&, const ProgramCounter&);
+bool operator==(const ProgramCounter&, const ProgramCounter&);
+
+struct ByteCodeInstruction {
+  Mnemonic mnemonic;
+  std::vector<Value> params;
+};
 
 struct State {
   ProgramCounter pc;

@@ -72,6 +72,11 @@ bool operator<(const ProgramCounter &lhs, const ProgramCounter &rhs) {
           lhs.instructionIndex < rhs.instructionIndex);
 }
 
+bool operator==(const ProgramCounter &lhs, const ProgramCounter &rhs) {
+  return (lhs.methodIndex == rhs.methodIndex &&
+          lhs.instructionIndex == rhs.instructionIndex);
+}
+
 Value::Value() : Value(0){};
 
 Value::Value(int value) {
@@ -162,5 +167,19 @@ bool operator<(const Value &lhs, const Value &rhs) {
       return lhs.val.doubleValue < rhs.val.doubleValue;
     default:
       return false;
+  }
+}
+string Value::toString() {
+  switch (type.type) {
+    case Int:
+      return to_string(val.intValue);
+    case Long:
+      return to_string(val.longValue);
+    case Float:
+      return to_string(val.floatValue);
+    case Double:
+      return to_string(val.doubleValue);
+    default:
+      return "VA?!?";
   }
 }

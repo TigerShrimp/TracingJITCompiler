@@ -11,6 +11,7 @@
 #include "Profiler.hpp"
 #include "Program.hpp"
 #include "TraceHandler.hpp"
+#include "TraceRecorder.hpp"
 
 class RunTime {
  public:
@@ -23,6 +24,7 @@ class RunTime {
   Profiler profiler;
   MemoryHandler memoryHandler;
   TraceHandler traceHandler;
+  TraceRecorder traceRecorder;
 
   size_t findIndexOfMain(Program*);
   void initProgramState(Program*);

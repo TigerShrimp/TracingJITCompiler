@@ -19,8 +19,8 @@
 // Magic.
 class Interpreter {
  public:
-  void evalInstruction(Program*, Mnemonic, std::vector<Value>);
-  std::vector<Value> prepareParams(Program*, Mnemonic);
+  void evalInstruction(Program*, ByteCodeInstruction);
+  ByteCodeInstruction prepareNext(Program*);
 
  private:
   TraceHandler traceHandler;

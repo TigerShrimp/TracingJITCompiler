@@ -1,6 +1,8 @@
 #ifndef BYTECODES_HPP
 #define BYTECODES_HPP
 
+#include <map>
+
 #include "Definitions.hpp"
 
 enum Mnemonic : uint8_t {

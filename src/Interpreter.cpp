@@ -2,12 +2,11 @@
 
 using namespace std;
 
-void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
-                                  vector<Value> params) {
+void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
   State *state = program->states.top();
-  DEBUG_PRINT("{}: - Top of stack: {}\n", byteCodeNames.at(mnemonic),
-              !state->stack.empty() ? toString(state->stack.top()) : "-");
-  switch (mnemonic) {
+  DEBUG_PRINT("{}: - Top of stack: {}\n", byteCodeNames.at(inst.mnemonic),
+              !state->stack.empty() ? state->stack.top().toString() : "-");
+  switch (inst.mnemonic) {
     // Constants loading
     case ICONST_M1: {
       program->push(Value(-1));
@@ -69,7 +68,7 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     case SIPUSH:
     case LDC:
     case LDC2_W: {
-      program->push(params[0]);
+      program->push(inst.params[0]);
       break;
     }
     // Loading
@@ -77,7 +76,7 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     case LLOAD:
     case FLOAD:
     case DLOAD: {
-      program->load(params[0].val.intValue);
+      program->load(inst.params[0].val.intValue);
       break;
     }
     case ILOAD_0:
@@ -113,7 +112,7 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     case LSTORE:
     case FSTORE:
     case DSTORE: {
-      program->store(params[0].val.intValue);
+      program->store(inst.params[0].val.intValue);
       break;
     }
     case ISTORE_0:
@@ -163,26 +162,26 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     // Control flow
     case IFGT: {
       int value = program->pop().val.intValue;
-      int offset = params[0].val.intValue;
+      int offset = inst.params[0].val.intValue;
       if (value > 0) program->jump(offset, 3);
       break;
     }
     case IF_ICMPGE: {
       int rhs = program->pop().val.intValue;
       int lhs = program->pop().val.intValue;
-      int offset = params[0].val.intValue;
+      int offset = inst.params[0].val.intValue;
       if (lhs >= rhs) program->jump(offset, 3);
       break;
     }
     case IF_ICMPGT: {
       int rhs = program->pop().val.intValue;
       int lhs = program->pop().val.intValue;
-      int offset = params[0].val.intValue;
+      int offset = inst.params[0].val.intValue;
       if (lhs > rhs) program->jump(offset, 3);
       break;
     }
     case GOTO: {
-      int offset = params[0].val.intValue;
+      int offset = inst.params[0].val.intValue;
       program->jump(offset, 3);
       break;
     }
@@ -206,12 +205,12 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     case INVOKEVIRTUAL: {
       // Is currently only used when System.out.println is called
       Value val = program->pop();
-      cout << toString(val) << endl;
+      cout << val.toString() << endl;
       program->jump(2);
       break;
     }
     case INVOKESTATIC: {
-      size_t nameIndex = params[0].val.intValue;
+      size_t nameIndex = inst.params[0].val.intValue;
       invoke(program, nameIndex);
       break;
     }
@@ -253,8 +252,8 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
       break;
     }
     case IINC: {
-      uint8_t index = params[0].val.intValue;
-      int8_t constant = params[1].val.intValue;
+      uint8_t index = inst.params[0].val.intValue;
+      int8_t constant = inst.params[1].val.intValue;
       int value = state->locals[index].val.intValue;
       value += constant;
       state->locals[index].val.intValue = value;
@@ -332,7 +331,7 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
     case NOP:
       break;
     default: {
-      cerr << "byte-code " << mnemonic << byteCodeNames.at(mnemonic)
+      cerr << "byte-code " << inst.mnemonic << byteCodeNames.at(inst.mnemonic)
            << " not supported at this moment, please come back later <3"
            << endl;
       break;
@@ -340,7 +339,8 @@ void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
   }
 }
 
-vector<Value> Interpreter::prepareParams(Program *program, Mnemonic mnemonic) {
+ByteCodeInstruction Interpreter::prepareNext(Program *program) {
+  Mnemonic mnemonic = program->readNextMnemonic();
   vector<Value> params;
   switch (mnemonic) {
     // All the mnemonics that take two bytes as parameters and combines them
@@ -420,7 +420,7 @@ vector<Value> Interpreter::prepareParams(Program *program, Mnemonic mnemonic) {
     default:
       break;
   }
-  return params;
+  return {mnemonic, params};
 }
 
 void Interpreter::invoke(Program *program, size_t nameIndex) {
@@ -434,7 +434,7 @@ void Interpreter::invoke(Program *program, size_t nameIndex) {
     key -= sizeOf(type);
     Value toAdd = program->pop();
     locals[key] = toAdd;
-    DEBUG_PRINT("Arg addr: {} = {}\n", key, toString(toAdd));
+    DEBUG_PRINT("Arg addr: {} = {}\n", key, toAdd.toString());
   }
   assert(key == 0 && "Last (first) argument should end up in the begining");
   DEBUG_PRINT("method {} stack {} locals {} {}\n", nameIndex, stack.size(),
@@ -450,21 +450,6 @@ int Interpreter::findNameIndex(Program *program, size_t methodRef) {
       (ConstantNameAndType *)
           program->constantPool[constantMethodRef->nameAndTypeIndex];
   return constantNameAndType->nameIndex;
-}
-
-string Interpreter::toString(Value val) {
-  switch (val.type.type) {
-    case Int:
-      return to_string(val.val.intValue);
-    case Long:
-      return to_string(val.val.longValue);
-    case Float:
-      return to_string(val.val.floatValue);
-    case Double:
-      return to_string(val.val.doubleValue);
-    default:
-      return "VA?!?";
-  }
 }
 
 int Interpreter::readParametersAsInt(Program *program) {

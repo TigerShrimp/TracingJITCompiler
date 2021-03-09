@@ -21,19 +21,23 @@ void RunTime::run(Program *program) {
     if (traceHandler.hasTrace(state->pc)) {
       traceHandler.runTrace(state);
     } else {
+      ProgramCounter pc = state->pc;
+      ByteCodeInstruction inst = interpreter.prepareNext(program);
       // TODO: note is probably not a very good name.
-      profiler.note(state->pc);
-      if (profiler.isHot(state->pc)) {
+      profiler.note(pc);
+      if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
         DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
                     state->pc.instructionIndex);
-        // TODO: Initiate trace recording
+        traceRecorder.initRecording(pc);
       }
-      Mnemonic mnemonic = program->readNextMnemonic();
-      vector<Value> params = interpreter.prepareParams(program, mnemonic);
-      if (recordingTrace()) {
-        cout << "not implemented yet" << endl;
+      if (traceRecorder.isRecording()) {
+        if (traceRecorder.record(pc, inst)) {
+          // TODO: Recording done, compile trace!
+          // state->pc = pc;
+          // continue;
+        }
       }
-      interpreter.evalInstruction(program, mnemonic, params);
+      interpreter.evalInstruction(program, inst);
     }
   }
   memoryHandler.freeTraces();
