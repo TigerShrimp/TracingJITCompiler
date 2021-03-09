@@ -19,14 +19,15 @@
 // Magic.
 class Interpreter {
  public:
-  void eval(Program*);
+  void evalInstruction(Program*, Mnemonic, std::vector<Value>);
+  std::vector<Value> prepareParams(Program*, Mnemonic);
 
  private:
   TraceHandler traceHandler;
 
   size_t findIndexOfMain(Program*);
   void invoke(Program*, size_t);
-  size_t findNameIndex(Program*, size_t);
+  int findNameIndex(Program*, size_t);
   // Helper functions
   std::string toString(Value);
   int readParametersAsInt(Program*);

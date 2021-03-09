@@ -40,6 +40,10 @@ uint8_t Program::readNext() {
   return nextByte;
 }
 
+Mnemonic Program::readNextMnemonic() {
+  return static_cast<Mnemonic>(readNext());
+}
+
 void Program::jump(int diff, int parametersRead) {
   states.top()->pc.instructionIndex += diff - parametersRead;
 }

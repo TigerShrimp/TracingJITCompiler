@@ -18,19 +18,23 @@ void RunTime::run(Program *program) {
   while (!program->states.empty()) {
     DEBUG_PRINT("States: {}\n", program->states.size());
     State *state = program->states.top();
-    profiler.note(state->pc);
-    if (recordingTrace()) {
-      cout << "not implemented yet" << endl;
-    } else if (traceHandler.hasTrace(state->pc)) {
+    if (traceHandler.hasTrace(state->pc)) {
       traceHandler.runTrace(state);
-    } else if (false &&
-               profiler.isHot(state->pc)) {  // False for now to not prohibit
-                                             // interpreter evaluation
-      DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
-                  state->pc.instructionIndex);
-      break;
-    } else
-      interpreter.eval(program);
+    } else {
+      // TODO: note is probably not a very good name.
+      profiler.note(state->pc);
+      if (profiler.isHot(state->pc)) {
+        DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
+                    state->pc.instructionIndex);
+        // TODO: Initiate trace recording
+      }
+      Mnemonic mnemonic = program->readNextMnemonic();
+      vector<Value> params = interpreter.prepareParams(program, mnemonic);
+      if (recordingTrace()) {
+        cout << "not implemented yet" << endl;
+      }
+      interpreter.evalInstruction(program, mnemonic, params);
+    }
   }
   memoryHandler.freeTraces();
 }
@@ -52,7 +56,7 @@ size_t RunTime::findIndexOfMain(Program *program) {
       return nameIndex;
     }
   }
-  // TODO: Standardize execption handing.
+  // TODO: Standardize exception handing.
   cerr << "Class file containsn't a main function" << endl;
   throw;
 }

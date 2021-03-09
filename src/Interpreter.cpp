@@ -2,9 +2,9 @@
 
 using namespace std;
 
-void Interpreter::eval(Program *program) {
+void Interpreter::evalInstruction(Program *program, Mnemonic mnemonic,
+                                  vector<Value> params) {
   State *state = program->states.top();
-  Mnemonic mnemonic = static_cast<Mnemonic>(program->readNext());
   DEBUG_PRINT("{}: - Top of stack: {}\n", byteCodeNames.at(mnemonic),
               !state->stack.empty() ? toString(state->stack.top()) : "-");
   switch (mnemonic) {
@@ -65,60 +65,19 @@ void Interpreter::eval(Program *program) {
       program->push(Value(1.0));
       break;
     }
-    case BIPUSH: {
-      uint8_t byte = program->readNext();
-      int8_t sByte = (int8_t)byte;
-      program->push(Value(sByte));
-      break;
-    }
-    case SIPUSH: {
-      int param = readParametersAsInt(program);
-      program->push(Value(param));
+    case BIPUSH:
+    case SIPUSH:
+    case LDC:
+    case LDC2_W: {
+      program->push(params[0]);
       break;
     }
     // Loading
-    case LDC: {
-      int index = program->readNext();
-      CPInfo *cpInfoEntry = program->constantPool[index];
-      if (cpInfoEntry->info() == "ConstantFloat: ") {
-        ConstantFloat *constantFloat = (ConstantFloat *)cpInfoEntry;
-        float floatRes;
-        memcpy(&floatRes, &constantFloat->bytes, sizeof(float));
-        program->push(Value(floatRes));
-      } else {  // ConstantInt
-        ConstantInteger *constantInteger = (ConstantInteger *)cpInfoEntry;
-        int intRes = (int)constantInteger->bytes;
-        program->push(Value(intRes));
-      }
-      break;
-    }
-    case LDC2_W: {
-      // TODO: Make Long/Double constants more general
-      int index = readParametersAsInt(program);
-      CPInfo *cpInfoEntry = program->constantPool[index];
-      if (cpInfoEntry->info() == "ConstantDouble: ") {
-        ConstantDouble *constantDouble = (ConstantDouble *)cpInfoEntry;
-        // The high and low bytes are stored in different positions of the
-        // constant pool so they have to be combined into one 64-bit number
-        long longRes =
-            ((long)constantDouble->highBytes << 32) + constantDouble->lowBytes;
-        double doubleRes;
-        memcpy(&doubleRes, &longRes, sizeof(double));
-        program->push(Value(doubleRes));
-      } else {  // ConstantLong
-        ConstantLong *constantLong = (ConstantLong *)cpInfoEntry;
-        long longRes =
-            ((long)constantLong->highBytes << 32) + constantLong->lowBytes;
-        program->push(Value(longRes));
-      }
-      break;
-    }
     case ILOAD:
     case LLOAD:
     case FLOAD:
     case DLOAD: {
-      int index = program->readNext();
-      program->load(index);
+      program->load(params[0].val.intValue);
       break;
     }
     case ILOAD_0:
@@ -154,8 +113,7 @@ void Interpreter::eval(Program *program) {
     case LSTORE:
     case FSTORE:
     case DSTORE: {
-      int index = program->readNext();
-      program->store(index);
+      program->store(params[0].val.intValue);
       break;
     }
     case ISTORE_0:
@@ -205,26 +163,26 @@ void Interpreter::eval(Program *program) {
     // Control flow
     case IFGT: {
       int value = program->pop().val.intValue;
-      int offset = readParametersAsInt(program);
+      int offset = params[0].val.intValue;
       if (value > 0) program->jump(offset, 3);
       break;
     }
     case IF_ICMPGE: {
       int rhs = program->pop().val.intValue;
       int lhs = program->pop().val.intValue;
-      int offset = readParametersAsInt(program);
+      int offset = params[0].val.intValue;
       if (lhs >= rhs) program->jump(offset, 3);
       break;
     }
     case IF_ICMPGT: {
       int rhs = program->pop().val.intValue;
       int lhs = program->pop().val.intValue;
-      int offset = readParametersAsInt(program);
+      int offset = params[0].val.intValue;
       if (lhs > rhs) program->jump(offset, 3);
       break;
     }
     case GOTO: {
-      int offset = readParametersAsInt(program);
+      int offset = params[0].val.intValue;
       program->jump(offset, 3);
       break;
     }
@@ -253,8 +211,7 @@ void Interpreter::eval(Program *program) {
       break;
     }
     case INVOKESTATIC: {
-      int methodRefIndex = readParametersAsInt(program);
-      size_t nameIndex = findNameIndex(program, methodRefIndex);
+      size_t nameIndex = params[0].val.intValue;
       invoke(program, nameIndex);
       break;
     }
@@ -296,8 +253,8 @@ void Interpreter::eval(Program *program) {
       break;
     }
     case IINC: {
-      uint8_t index = program->readNext();
-      int8_t constant = program->readNext();
+      uint8_t index = params[0].val.intValue;
+      int8_t constant = params[1].val.intValue;
       int value = state->locals[index].val.intValue;
       value += constant;
       state->locals[index].val.intValue = value;
@@ -365,9 +322,10 @@ void Interpreter::eval(Program *program) {
     }
     // Misc
     case GETSTATIC: {
-      // int index = readParametersAsInt();
-      // ConstantFieldRef* value =
-      // (ConstantFieldRef*)program->constantPool[index]; value->classIndex;
+      // Only use for this at the moment is to get the parameter for the
+      // print-function. In reality it should read parameters to get index of
+      // what should be passed into the function but at the moment INVOKEVIRTUAL
+      // takes care of it.
       program->jump(2);
       break;
     }
@@ -380,6 +338,89 @@ void Interpreter::eval(Program *program) {
       break;
     }
   }
+}
+
+vector<Value> Interpreter::prepareParams(Program *program, Mnemonic mnemonic) {
+  vector<Value> params;
+  switch (mnemonic) {
+    // All the mnemonics that take two bytes as parameters and combines them
+    // into a single integer.
+    case SIPUSH:
+    case IFGT:
+    case IF_ICMPGE:
+    case IF_ICMPGT:
+    case GOTO: {
+      params.push_back(Value(readParametersAsInt(program)));
+      break;
+    }
+    // LDC2_W is a little different as it also requires lookup in constant pool.
+    case LDC2_W: {
+      // TODO: Make Long/Double constants more general
+      int index = readParametersAsInt(program);
+      CPInfo *cpInfoEntry = program->constantPool[index];
+      if (cpInfoEntry->info() == "ConstantDouble: ") {
+        ConstantDouble *constantDouble = (ConstantDouble *)cpInfoEntry;
+        // The high and low bytes are stored in different positions of the
+        // constant pool so they have to be combined into one 64-bit number
+        long longRes =
+            ((long)constantDouble->highBytes << 32) + constantDouble->lowBytes;
+        double doubleRes;
+        memcpy(&doubleRes, &longRes, sizeof(double));
+        params.push_back(Value(doubleRes));
+      } else {  // ConstantLong
+        ConstantLong *constantLong = (ConstantLong *)cpInfoEntry;
+        long longRes =
+            ((long)constantLong->highBytes << 32) + constantLong->lowBytes;
+        params.push_back(Value(longRes));
+      }
+      break;
+    }
+    // INVOKESTATIC also requires lookup in the constant pool
+    case INVOKESTATIC: {
+      int methodRefIndex = readParametersAsInt(program);
+      params.push_back(Value(findNameIndex(program, methodRefIndex)));
+      break;
+    }
+    // IINC reads two parameters but does not combine them into a single value.
+    case IINC: {
+      params.push_back(Value(program->readNext()));
+      params.push_back(Value(program->readNext()));
+      break;
+    }
+    // All the mnemonics that read a single parameter
+    case BIPUSH:
+    case ILOAD:
+    case FLOAD:
+    case LLOAD:
+    case DLOAD:
+    case ISTORE:
+    case FSTORE:
+    case LSTORE:
+    case DSTORE: {
+      params.push_back(Value(program->readNext()));
+      break;
+    }
+    // LDC requires lookup in constant pool
+    case LDC: {
+      int index = program->readNext();
+      CPInfo *cpInfoEntry = program->constantPool[index];
+      if (cpInfoEntry->info() == "ConstantFloat: ") {
+        ConstantFloat *constantFloat = (ConstantFloat *)cpInfoEntry;
+        float floatRes;
+        memcpy(&floatRes, &constantFloat->bytes, sizeof(float));
+        params.push_back(Value(floatRes));
+      } else {  // ConstantInt
+        ConstantInteger *constantInteger = (ConstantInteger *)cpInfoEntry;
+        int intRes = (int)constantInteger->bytes;
+        params.push_back(Value(intRes));
+      }
+      break;
+    }
+    // Remaining menmonics has no parameters to read.
+    default:
+      break;
+  }
+  return params;
 }
 
 void Interpreter::invoke(Program *program, size_t nameIndex) {
@@ -402,7 +443,7 @@ void Interpreter::invoke(Program *program, size_t nameIndex) {
   program->states.push(state);
 }
 
-size_t Interpreter::findNameIndex(Program *program, size_t methodRef) {
+int Interpreter::findNameIndex(Program *program, size_t methodRef) {
   ConstantMethodRef *constantMethodRef =
       (ConstantMethodRef *)program->constantPool[methodRef];
   ConstantNameAndType *constantNameAndType =

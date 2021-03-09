@@ -69,6 +69,7 @@ struct Program {
   std::stack<State*> states;
   uint8_t peek(size_t);
   uint8_t readNext();
+  Mnemonic readNextMnemonic();
   void jump(int);
   void jump(int, int);
   void push(Value);
