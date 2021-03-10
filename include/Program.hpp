@@ -47,7 +47,7 @@ bool operator<(const ProgramCounter&, const ProgramCounter&);
 bool operator==(const ProgramCounter&, const ProgramCounter&);
 
 struct ByteCodeInstruction {
-  Mnemonic mnemonic;
+  JVM::Mnemonic mnemonic;
   std::vector<Value> params;
 };
 
@@ -76,7 +76,7 @@ struct Program {
   std::stack<State*> states;
   uint8_t peek(size_t);
   uint8_t readNext();
-  Mnemonic readNextMnemonic();
+  JVM::Mnemonic readNextMnemonic();
   void jump(int);
   void jump(int, int);
   void push(Value);

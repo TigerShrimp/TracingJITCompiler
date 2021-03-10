@@ -26,8 +26,10 @@ void RunTime::run(Program *program) {
       // TODO: note is probably not a very good name.
       profiler.note(pc);
       if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
-        DEBUG_PRINT("Hot loop found ({},{})\n", state->pc.methodIndex,
-                    state->pc.instructionIndex);
+        DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
+                    state->pc.methodIndex, state->pc.instructionIndex,
+                    state->stack.size());
+        // break;
         traceRecorder.initRecording(pc);
       }
       if (traceRecorder.isRecording()) {

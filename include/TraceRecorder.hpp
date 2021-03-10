@@ -6,6 +6,11 @@
 #include "JVM/ByteCodes.hpp"
 #include "Program.hpp"
 
+struct RecordEntry {
+  ProgramCounter pc;
+  ByteCodeInstruction inst;
+};
+
 class TraceRecorder {
  public:
   bool isRecording();
@@ -15,7 +20,7 @@ class TraceRecorder {
  private:
   ProgramCounter traceStart;
   bool recording;
-  std::vector<ByteCodeInstruction> recordedTrace;
+  std::vector<RecordEntry> recordedTrace;
 };
 
 #endif  // TRACERECORDER_HPP

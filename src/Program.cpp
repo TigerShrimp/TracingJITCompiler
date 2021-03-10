@@ -16,7 +16,7 @@ string Program::programString() {
 string Method::methodString() {
   stringstream ss;
   for (int i = 0; i < code.size(); i++) {
-    Mnemonic mnemonic = static_cast<Mnemonic>(code[i]);
+    JVM::Mnemonic mnemonic = static_cast<JVM::Mnemonic>(code[i]);
     string s = "";
     int row = i;
     for (int j = 0; j < getParameters(mnemonic); j++) {
@@ -24,7 +24,8 @@ string Method::methodString() {
       s += to_string(code[i]);
       s += " ";
     }
-    ss << "  " << row << ": " << byteCodeNames.at(mnemonic) << " " << s << endl;
+    ss << "  " << row << ": " << JVM::byteCodeNames.at(mnemonic) << " " << s
+       << endl;
   }
   return ss.str();
 }
@@ -40,8 +41,8 @@ uint8_t Program::readNext() {
   return nextByte;
 }
 
-Mnemonic Program::readNextMnemonic() {
-  return static_cast<Mnemonic>(readNext());
+JVM::Mnemonic Program::readNextMnemonic() {
+  return static_cast<JVM::Mnemonic>(readNext());
 }
 
 void Program::jump(int diff, int parametersRead) {

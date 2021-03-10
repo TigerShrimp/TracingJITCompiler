@@ -1,16 +1,14 @@
 #ifndef COMPILER_HPP
 #define COMPILER_HPP
-#include <asmjit/x86.h>
-
+#include <map>
+#include <queue>
+#include <stack>
 #include <vector>
 
-#include "Definitions.h"
-
-struct Instruction {
-  asmjit::x86::Inst::Id inst;
-  asmjit::x86::Operand op1;
-  asmjit::x86::Operand op2;
-};
+#include "Definitions.hpp"
+#include "JVM/ByteCodes.hpp"
+#include "TraceRecorder.hpp"
+#include "x86.hpp"
 
 // TigerShrimp compiler.
 // This compiler will take a trace of JVM byte-code instructions and compile it
@@ -22,7 +20,19 @@ class Compiler {
   // Handle jumps, (fallthrough to continue on trace), maybe go through trace
   // backwards.
   // Put guards, input bailout code.
-  std::vector<Instruction> compile(std::vector<uint8_t>);
+  std::vector<Instruction> compile(std::vector<RecordEntry>);
+
+ private:
+  std::vector<Instruction> nativeTrace;
+  std::map<size_t, Op> variableTable;
+  std::stack<Op> operandStack;
+  std::priority_queue<REG> availableRegs;
+  std::priority_queue<XREG> availableXRegs;
+  std::map<size_t, Op> initRecord;
+  REG getFirstAvailableReg();
+  void resetCompilerState();
+  void compile(RecordEntry);
+  void placeInNextAvailableRegister(size_t, BaseType);
 };
 
 #endif  // COMPILER_HPP

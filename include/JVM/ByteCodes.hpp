@@ -4,7 +4,7 @@
 #include <map>
 
 #include "Definitions.hpp"
-
+namespace JVM {
 enum Mnemonic : uint8_t {
   NOP,
   ACONST_NULL,
@@ -261,7 +261,8 @@ static const std::map<Mnemonic, size_t> parametersMap = {
     {ANEWARRAY, 2},
     {CHECKCAST, 2},
     {INSTANCEOF, 2},
-    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands, otherwise
+    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
+    // otherwise
     // 3
     {MULTIANEWARRAY, 3},
     {IFNULL, 2},
@@ -478,5 +479,5 @@ static const std::map<Mnemonic, std::string> byteCodeNames = {
     {GOTO_W, "GOTO_W"},
     {JSR_W, "JSR_W"},
     {BREAKPOINT, "BREAKPOINT"}};
-
+}  // namespace JVM
 #endif  // BYTECODES_HPP

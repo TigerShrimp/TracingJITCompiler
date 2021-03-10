@@ -15,17 +15,18 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
 #ifdef DEBUG_PRINT_ON
     DEBUG_PRINT(" ---- Trace recorded: ({},{}) ----\n", traceStart.methodIndex,
                 traceStart.instructionIndex);
-    for (auto bcInst : recordedTrace) {
-      DEBUG_PRINT("{} ", byteCodeNames.at(bcInst.mnemonic));
+    for (auto record : recordedTrace) {
+      ByteCodeInstruction bcInst = record.inst;
+      DEBUG_PRINT("{} ", JVM::byteCodeNames.at(bcInst.mnemonic));
       for (auto val : bcInst.params) {
         DEBUG_PRINT("{} ", val.toString());
       }
       DEBUG_PRINT("\n")
     }
-    DEBUG_PRINT(" ---- -------------- ----\n")
+    DEBUG_PRINT(" ---- ---------------------- ----\n")
 #endif
     return true;
   }
-  recordedTrace.push_back(inst);
+  recordedTrace.push_back({pc, inst});
   return true;
 }

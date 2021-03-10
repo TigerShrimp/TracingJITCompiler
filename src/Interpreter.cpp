@@ -1,6 +1,7 @@
 #include "Interpreter.hpp"
 
 using namespace std;
+using namespace JVM;
 
 void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
   State *state = program->states.top();
