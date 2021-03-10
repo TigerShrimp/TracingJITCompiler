@@ -98,7 +98,8 @@ void Compiler::compile(RecordEntry entry) {
       nativeTrace.push_back({x86::ADD, opDst, op2});
       operandStack.push(opDst);
     }
-    case JVM::IINC:
+    case JVM::IINC: {
+    }
     default:
       break;
   }
@@ -126,7 +127,7 @@ void Compiler::placeInNextAvailableRegister(size_t var, BaseType type) {
   }
 }
 
-Op getFirstAvailableReg() {
+Op Compiler::getFirstAvailableReg() {
   if (!availableRegs.empty()) {
     REG reg = availableRegs.top();
     availableRegs.pop();

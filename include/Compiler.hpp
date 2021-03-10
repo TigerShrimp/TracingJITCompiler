@@ -29,10 +29,10 @@ class Compiler {
   std::priority_queue<REG> availableRegs;
   std::priority_queue<XREG> availableXRegs;
   std::map<size_t, Op> initRecord;
-  REG getFirstAvailableReg();
   void resetCompilerState();
   void compile(RecordEntry);
   void placeInNextAvailableRegister(size_t, BaseType);
+  REG getFirstAvailableReg();
 };
 
 #endif  // COMPILER_HPP
