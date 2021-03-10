@@ -32,7 +32,7 @@ class Compiler {
   void resetCompilerState();
   void compile(RecordEntry);
   void placeInNextAvailableRegister(size_t, BaseType);
-  REG getFirstAvailableReg();
+  Op getFirstAvailableReg();
 };
 
 #endif  // COMPILER_HPP
