@@ -1,18 +1,56 @@
 #include "Assembler.hpp"
 
 using namespace std;
-using namespace asmjit;
 
 // Public functions
 
+vector<uint8_t> Assembler::assemble(vector<Instruction>& nativeTrace,
+                                    set<ProgramCounter> branchTargets) {
+  map<ProgramCounter, asmjit::Label> labels;
+  asmjit::Environment env;
+  env.setArch(asmjit::Environment::kArchX64);
+
+  asmjit::CodeHolder codeHolder;
+  codeHolder.init(env);
+  asmjit::x86::Assembler asmAssembler(&codeHolder);
+  for (auto pc : branchTargets) {
+    labels[pc] = asmAssembler.newLabel();
+  }
+  for (auto inst : nativeTrace) {
+    switch (inst.inst) {
+      case x86::LABEL:
+        asmAssembler.bind(labels[inst.op1.pc]);
+        break;
+      // Mnemonics that have 0 operands
+      case x86::LEAVE:
+      case x86::RET: {
+        // TODO: add function to convert our operand to asmjit operand
+        break;
+      }
+      // Mnemonics that have 1 operand
+      case x86::PUSH:
+      case x86::POP:
+      case x86::INC:
+      case x86::JMP:
+      case x86::JGE: {
+        break;
+      }
+      // Mnemonics that have 2 operands (the rest)
+      default: {
+        break;
+      }
+    }
+  }
+}
+
 vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
-  using namespace x86;
+  using namespace asmjit;
   Environment env;
   env.setArch(Environment::kArchX64);
 
   CodeHolder codeHolder;
   codeHolder.init(env);
-  x86::Assembler asmAssembler(&codeHolder);
+  asmjit::x86::Assembler asmAssembler(&codeHolder);
 
   for (auto asmRow : asmRows) {
     transform(asmRow.begin(), asmRow.end(), asmRow.begin(), ::toupper);
@@ -42,7 +80,7 @@ vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
         break;
     }
     string mnemonic = instParts[0];
-    x86::Inst::Id inst = lookupMnemonics.at(mnemonic);
+    asmjit::x86::Inst::Id inst = lookupMnemonics.at(mnemonic);
 
     Error err;
     switch (operands) {
@@ -57,9 +95,8 @@ vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
         break;
     }
     if (err) {
-      perror("Emit error");
-      cerr << "Compilen't" << endl;
-      exit(EXIT_FAILURE);
+      cerr << "Emit error: " << DebugUtils::errorAsString(err) << endl;
+      throw;
     }
   }
   CodeBuffer& buffer = codeHolder.textSection()->buffer();

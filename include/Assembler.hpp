@@ -5,12 +5,14 @@
 #include <algorithm>
 #include <iostream>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "AsmHelper.hpp"
 #include "Definitions.hpp"
+#include "x86.hpp"
 
 static const std::regex regReg(
     "RDI|RSI|RDX|RCX|RAX|RBX|RBP|RSI|R\\d{1,2}|XMM\\d{1,2}");
@@ -30,6 +32,9 @@ class Assembler {
  public:
   // Assembles lines of x86_64 instruction strings
   std::vector<uint8_t> assemble(std::vector<std::string>&);
+  // Assembles a vector of x86 Instructions defined in x86.hpp
+  std::vector<uint8_t> assemble(std::vector<Instruction>&,
+                                std::set<ProgramCounter>);
 };
 
 static const ArgumentType getArgumentType(std::string argument);

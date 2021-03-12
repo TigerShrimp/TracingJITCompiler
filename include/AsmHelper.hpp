@@ -7,9 +7,10 @@
 #include <string>
 
 #include "Definitions.hpp"
-
+#include "x86.hpp"
 typedef std::map<std::string, asmjit::x86::Reg> regMap;
 typedef std::map<std::string, asmjit::x86::Inst::Id> mnemMap;
+typedef std::map<x86::Inst, asmjit::x86::Inst::Id> x86MnemMap;
 
 const regMap lookupRegisters = {
     {"RAX", asmjit::x86::rax},   {"RCX", asmjit::x86::rcx},
@@ -36,5 +37,22 @@ const mnemMap lookupMnemonics = {{"MOV", asmjit::x86::Inst::kIdMov},
                                  {"ADDSD", asmjit::x86::Inst::kIdAddsd},
                                  {"MULSD", asmjit::x86::Inst::kIdMulsd},
                                  {"SUBSD", asmjit::x86::Inst::kIdSubsd}};
+const x86MnemMap lookupX86Mnemonics = {
+    {x86::MOV, asmjit::x86::Inst::kIdMov},
+    {x86::ADD, asmjit::x86::Inst::kIdAdd},
+    {x86::ENTER, asmjit::x86::Inst::kIdEnter},
+    {x86::LEAVE, asmjit::x86::Inst::kIdLeave},
+    {x86::RET, asmjit::x86::Inst::kIdRet},
+    {x86::IMUL, asmjit::x86::Inst::kIdImul},
+    {x86::SUB, asmjit::x86::Inst::kIdSub},
+    {x86::PUSH, asmjit::x86::Inst::kIdPush},
+    {x86::POP, asmjit::x86::Inst::kIdPop},
+    {x86::INC, asmjit::x86::Inst::kIdInc},
+    {x86::MOVQ, asmjit::x86::Inst::kIdMovq},
+    {x86::ADDSD, asmjit::x86::Inst::kIdAddsd},
+    {x86::MULSD, asmjit::x86::Inst::kIdMulsd},
+    {x86::SUBSD, asmjit::x86::Inst::kIdSubsd},
+    {x86::JMP, asmjit::x86::Inst::kIdJmp},
+    {x86::JGE, asmjit::x86::Inst::kIdJge}};
 
 #endif  // ASM_HELPER_HPP

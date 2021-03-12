@@ -2,10 +2,11 @@
 
 using namespace std;
 
-vector<Instruction> Compiler::compile(vector<RecordEntry> recordedTrace) {
+vector<Instruction> Compiler::compile(Recording recording) {
   resetCompilerState();
-  for (auto entry : recordedTrace) {
-    compile(entry);
+  for (auto entry : recording.recordedTrace) {
+    compile(entry, recording.branchTargets.contains(entry.pc));
+    // TODO: add init and bailout code
   }
   return nativeTrace;
 }
@@ -17,7 +18,9 @@ void Compiler::resetCompilerState() {
   // TODO: fill avail regs and xregs with all registers
 }
 
-void Compiler::compile(RecordEntry entry) {
+void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
+  if (startsWithLabel)
+    nativeTrace.push_back({x86::LABEL, labelAt(entry.pc, Value(0))});
   switch (entry.inst.mnemonic) {
     // TODO: Change ILOAD_X to regular ILOAD with parameter. Same with
     // store/const.
@@ -78,7 +81,8 @@ void Compiler::compile(RecordEntry entry) {
       operandStack.pop();
       if (op1.opType == REGISTER || op1.opType == MEMORY) {
         nativeTrace.push_back({x86::CMP, op1, op2});
-        // TODO: nativeTrace.push_back({x86::JGE, bailoutLabel})
+        nativeTrace.push_back(
+            {x86::JGE, labelAt(entry.pc, entry.inst.params[0])});
       } else {
         cerr << "Handle move to reg before operation" << endl;
         throw;
@@ -87,7 +91,8 @@ void Compiler::compile(RecordEntry entry) {
     }
 
     case JVM::GOTO:
-      // TODO: nativeTrace.push_back({x86::JMP, startLabel...})
+      nativeTrace.push_back(
+          {x86::JMP, labelAt(entry.pc, entry.inst.params[0])});
     case JVM::IADD: {
       Op op2 = operandStack.top();
       operandStack.pop();
@@ -99,6 +104,13 @@ void Compiler::compile(RecordEntry entry) {
       operandStack.push(opDst);
     }
     case JVM::IINC: {
+      size_t varIndex = entry.inst.params[0].val.intValue;
+      if (!variableTable.contains(varIndex)) {
+        placeInNextAvailableRegister(varIndex, Int);
+      }
+      nativeTrace.push_back({x86::ADD,
+                             variableTable[varIndex],
+                             {IMMEDIATE, .val = entry.inst.params[1]}});
     }
     default:
       break;
@@ -136,4 +148,10 @@ Op Compiler::getFirstAvailableReg() {
     cerr << "Can not handle non-free registers yet" << endl;
     throw;
   }
+}
+
+Op Compiler::labelAt(ProgramCounter pc, Value offset) {
+  int intOffset = offset.val.intValue;
+  size_t labelPosition = pc.instructionIndex + intOffset;
+  return {LABEL, .pc = {labelPosition, pc.methodIndex}};
 }

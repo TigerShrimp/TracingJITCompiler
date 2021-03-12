@@ -19,10 +19,13 @@ enum Inst {
   MULSD,
   SUBSD,
   CMP,
-  JGE
+  JGE,
+  JMP,
+  // TigerShrimp specific
+  LABEL
 };
 }  // namespace x86
-enum OpType { REGISTER, XMM_REGISTER, MEMORY, IMMEDIATE };
+enum OpType { REGISTER, XMM_REGISTER, MEMORY, IMMEDIATE, LABEL };
 
 enum REG { RAX };
 
@@ -39,6 +42,7 @@ struct Op {
   XREG xreg;
   Mem mem;
   Value val;
+  ProgramCounter pc;
 };
 
 struct Instruction {

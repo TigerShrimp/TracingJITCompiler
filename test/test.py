@@ -30,3 +30,7 @@ for class_file in class_files:
             class_name, tiger_shrimp_out, java_out), end='')
 
 print('Tests: {}/{} passed'.format(tests_passed, len(class_files)))
+if tests_passed == len(class_files):
+    subprocess.run(['say', 'didididididi'])
+else:
+    subprocess.run(['say', 'didu'])

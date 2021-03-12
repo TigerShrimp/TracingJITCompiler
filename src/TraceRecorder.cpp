@@ -7,6 +7,11 @@ void TraceRecorder::initRecording(ProgramCounter pc) {
   recording = true;
   traceStart = pc;
   recordedTrace.clear();
+  branchTargets.clear();
+}
+
+Recording TraceRecorder::getRecording() {
+  return {recordedTrace, branchTargets};
 }
 
 bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
@@ -26,6 +31,18 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
     DEBUG_PRINT(" ---- ---------------------- ----\n")
 #endif
     return true;
+  }
+  switch (inst.mnemonic) {
+    case JVM::GOTO:
+    case JVM::IFGT:
+    case JVM::IF_ICMPGE:
+    case JVM::IF_ICMPGT: {
+      ProgramCounter branchTarget = pc;
+      branchTarget.instructionIndex += inst.params[0].val.intValue;
+      branchTargets.insert(branchTarget);
+    }
+    default:
+      break;
   }
   recordedTrace.push_back({pc, inst});
   return true;

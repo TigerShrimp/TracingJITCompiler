@@ -20,7 +20,7 @@ class Compiler {
   // Handle jumps, (fallthrough to continue on trace), maybe go through trace
   // backwards.
   // Put guards, input bailout code.
-  std::vector<Instruction> compile(std::vector<RecordEntry>);
+  std::vector<Instruction> compile(Recording);
 
  private:
   std::vector<Instruction> nativeTrace;
@@ -30,9 +30,10 @@ class Compiler {
   std::priority_queue<XREG> availableXRegs;
   std::map<size_t, Op> initRecord;
   void resetCompilerState();
-  void compile(RecordEntry);
+  void compile(RecordEntry, bool);
   void placeInNextAvailableRegister(size_t, BaseType);
   Op getFirstAvailableReg();
+  Op labelAt(ProgramCounter, Value);
 };
 
 #endif  // COMPILER_HPP

@@ -16,5 +16,5 @@ clean:
 clean_all:
 	@rm -rf build
 
-run_test: java
+run_test: all
 	@python3 test/test.py
