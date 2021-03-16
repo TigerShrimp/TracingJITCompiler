@@ -5,10 +5,16 @@
 #include <stack>
 #include <vector>
 
+#include "Assembler.hpp"
 #include "Definitions.hpp"
 #include "JVM/ByteCodes.hpp"
 #include "TraceRecorder.hpp"
 #include "x86.hpp"
+
+struct CompiledTrace {
+  std::map<size_t, ProgramCounter> exitPoints;
+  std::vector<uint8_t> trace;
+};
 
 // TigerShrimp compiler.
 // This compiler will take a trace of JVM byte-code instructions and compile it
@@ -20,11 +26,13 @@ class Compiler {
   // Handle jumps, (fallthrough to continue on trace), maybe go through trace
   // backwards.
   // Put guards, input bailout code.
-  std::vector<Instruction> compile(Recording);
+  CompiledTrace compile(Recording);
 
  private:
+  Assembler assembler;
   std::vector<Instruction> nativeTrace;
   std::map<size_t, Op> variableTable;
+  std::map<REG, size_t> regInitTable;
   std::stack<Op> operandStack;
   std::priority_queue<REG> availableRegs;
   std::priority_queue<XREG> availableXRegs;

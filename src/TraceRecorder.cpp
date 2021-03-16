@@ -7,11 +7,12 @@ void TraceRecorder::initRecording(ProgramCounter pc) {
   recording = true;
   traceStart = pc;
   recordedTrace.clear();
-  branchTargets.clear();
+  innerBranchTargets.clear();
+  outerBranchTargets.clear();
 }
 
 Recording TraceRecorder::getRecording() {
-  return {recordedTrace, branchTargets};
+  return {recordedTrace, innerBranchTargets, outerBranchTargets};
 }
 
 bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
@@ -38,12 +39,19 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
     case JVM::IF_ICMPGE:
     case JVM::IF_ICMPGT: {
       ProgramCounter branchTarget = pc;
-      branchTarget.instructionIndex += inst.params[0].val.intValue;
-      branchTargets.insert(branchTarget);
+      int offset = inst.params[0].val.intValue;
+      branchTarget.instructionIndex += offset;
+      // Backward branches are only present at the unconditional branch that
+      // takes the pc back to the start of the loop so we treat them differently
+      if (offset < 0)
+        innerBranchTargets.insert(branchTarget);
+      else
+        outerBranchTargets.insert(branchTarget);
+      break;
     }
     default:
       break;
   }
   recordedTrace.push_back({pc, inst});
-  return true;
+  return false;
 }

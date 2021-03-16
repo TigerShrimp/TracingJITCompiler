@@ -260,6 +260,7 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       state->locals[index].val.intValue = value;
       break;
     }
+    // Conversions
     case I2L: {
       Value val = program->pop();
       program->push(Value((long)val.val.intValue));

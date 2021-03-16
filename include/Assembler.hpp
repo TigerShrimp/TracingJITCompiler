@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -28,18 +29,23 @@ struct Argument {
 };
 
 class Assembler {
- private:
  public:
   // Assembles lines of x86_64 instruction strings
   std::vector<uint8_t> assemble(std::vector<std::string>&);
   // Assembles a vector of x86 Instructions defined in x86.hpp
   std::vector<uint8_t> assemble(std::vector<Instruction>&,
-                                std::set<ProgramCounter>);
-};
+                                std::vector<Instruction>&,
+                                std::vector<Instruction>&,
+                                std::vector<ProgramCounter>);
 
-static const ArgumentType getArgumentType(std::string argument);
-static const asmjit::x86::Gp getReg(std::string regString);
-static const Argument getArgument(std::string argString);
-static const asmjit::Operand convert(Argument arg);
+ private:
+  void assemble(asmjit::x86::Assembler&, std::vector<Instruction>&);
+  asmjit::Operand convert(Op);
+  std::map<ProgramCounter, asmjit::Label> labels;
+  ArgumentType getArgumentType(std::string);
+  asmjit::x86::Gp getReg(std::string);
+  Argument getArgument(std::string);
+  asmjit::Operand convert(Argument);
+};
 
 #endif  // ASSEMBLER_HPP

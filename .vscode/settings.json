@@ -68,7 +68,9 @@
         "utility": "cpp",
         "__tree": "cpp",
         "map": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "list": "cpp",
+        "set": "cpp"
     },
     "cmake.configureOnOpen": true
 }

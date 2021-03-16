@@ -4,27 +4,50 @@ using namespace std;
 
 // Public functions
 
-vector<uint8_t> Assembler::assemble(vector<Instruction>& nativeTrace,
-                                    set<ProgramCounter> branchTargets) {
-  map<ProgramCounter, asmjit::Label> labels;
+vector<uint8_t> Assembler::assemble(vector<Instruction>& initCode,
+                                    vector<Instruction>& nativeTrace,
+                                    vector<Instruction>& bailout,
+                                    vector<ProgramCounter> branchTargets) {
+  DEBUG_PRINT("Assemble start\n");
   asmjit::Environment env;
   env.setArch(asmjit::Environment::kArchX64);
 
   asmjit::CodeHolder codeHolder;
   codeHolder.init(env);
   asmjit::x86::Assembler asmAssembler(&codeHolder);
+
+  labels.clear();
   for (auto pc : branchTargets) {
+    DEBUG_PRINT("Label at = ({},{})\n", pc.methodIndex, pc.instructionIndex);
     labels[pc] = asmAssembler.newLabel();
   }
-  for (auto inst : nativeTrace) {
+
+  assemble(asmAssembler, initCode);
+  DEBUG_PRINT("Assemble nativeTrace\n");
+  assemble(asmAssembler, nativeTrace);
+  DEBUG_PRINT("Assemble bailout\n");
+  assemble(asmAssembler, bailout);
+
+  asmjit::CodeBuffer& buffer = codeHolder.textSection()->buffer();
+  vector<uint8_t> bytes(buffer.data(), buffer.data() + buffer.size());
+
+  return bytes;
+}
+
+void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
+                         std::vector<Instruction>& insts) {
+  asmjit::Error err;
+  for (auto inst : insts) {
     switch (inst.inst) {
       case x86::LABEL:
-        asmAssembler.bind(labels[inst.op1.pc]);
+        DEBUG_PRINT("Binding label ({},{})\n", inst.op1.pc.methodIndex,
+                    inst.op1.pc.instructionIndex)
+        err = asmAssembler.bind(labels[inst.op1.pc]);
         break;
       // Mnemonics that have 0 operands
       case x86::LEAVE:
       case x86::RET: {
-        // TODO: add function to convert our operand to asmjit operand
+        err = asmAssembler.emit(lookupX86Mnemonics.at(inst.inst));
         break;
       }
       // Mnemonics that have 1 operand
@@ -33,13 +56,59 @@ vector<uint8_t> Assembler::assemble(vector<Instruction>& nativeTrace,
       case x86::INC:
       case x86::JMP:
       case x86::JGE: {
+        asmjit::Operand op = convert(inst.op1);
+        err = asmAssembler.emit(lookupX86Mnemonics.at(inst.inst), op);
         break;
       }
       // Mnemonics that have 2 operands (the rest)
       default: {
+        asmjit::Operand op1 = convert(inst.op1);
+        asmjit::Operand op2 = convert(inst.op2);
+        err = asmAssembler.emit(lookupX86Mnemonics.at(inst.inst), op1, op2);
         break;
       }
     }
+    if (err) {
+      cerr << "Emit error: " << asmjit::DebugUtils::errorAsString(err) << " "
+           << inst.inst << " " << inst.op1.opType << endl;
+      throw;
+    }
+  }
+}
+
+asmjit::Operand Assembler::convert(Op op) {
+  switch (op.opType) {
+    case REGISTER:
+      return lookupX86Registers.at(op.reg);
+    case XMM_REGISTER:
+      return lookupXmmRegisters.at(op.xreg);
+    case MEMORY: {
+      asmjit::x86::Gp base = lookupX86Registers.at(op.mem.reg);
+      asmjit::x86::Mem mem = asmjit::x86::qword_ptr(base, op.mem.offset);
+      return mem;
+    }
+    case IMMEDIATE: {
+      asmjit::Imm imm;
+      switch (op.val.type.type) {
+        case Int:
+          imm.setValue(op.val.val.intValue);
+          break;
+        case Float:
+          imm.setValue(op.val.val.floatValue);
+          break;
+        case Long:
+          imm.setValue(op.val.val.longValue);
+          break;
+        case Double:
+          imm.setValue(op.val.val.doubleValue);
+          break;
+        default:
+          break;
+      }
+      return imm;
+    }
+    case LABEL:
+      return labels[op.pc];
   }
 }
 
@@ -105,7 +174,7 @@ vector<uint8_t> Assembler::assemble(vector<string>& asmRows) {
   return bytes;
 }
 
-static const ArgumentType getArgumentType(string argument) {
+ArgumentType Assembler::getArgumentType(string argument) {
   ArgumentType arg;
   if (regex_match(argument.begin(), argument.end(), immReg)) {
     arg = ArgumentType::Imm;
@@ -119,13 +188,13 @@ static const ArgumentType getArgumentType(string argument) {
   return arg;
 }
 
-static const Argument getArgument(string argString) {
+Argument Assembler::getArgument(string argString) {
   ArgumentType t = getArgumentType(argString);
   Argument arg = {t, argString};
   return arg;
 }
 
-static const asmjit::Operand convert(Argument arg) {
+asmjit::Operand Assembler::convert(Argument arg) {
   switch (arg.type) {
     case ArgumentType::Reg: {
       asmjit::x86::Reg reg = lookupRegisters.at(arg.val);

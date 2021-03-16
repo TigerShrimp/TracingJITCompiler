@@ -10,6 +10,8 @@
 #include "x86.hpp"
 typedef std::map<std::string, asmjit::x86::Reg> regMap;
 typedef std::map<std::string, asmjit::x86::Inst::Id> mnemMap;
+typedef std::map<REG, asmjit::x86::Gp> x86RegMap;
+typedef std::map<XREG, asmjit::x86::Reg> xmmRegMap;
 typedef std::map<x86::Inst, asmjit::x86::Inst::Id> x86MnemMap;
 
 const regMap lookupRegisters = {
@@ -37,6 +39,18 @@ const mnemMap lookupMnemonics = {{"MOV", asmjit::x86::Inst::kIdMov},
                                  {"ADDSD", asmjit::x86::Inst::kIdAddsd},
                                  {"MULSD", asmjit::x86::Inst::kIdMulsd},
                                  {"SUBSD", asmjit::x86::Inst::kIdSubsd}};
+
+const x86RegMap lookupX86Registers = {
+    {RAX, asmjit::x86::rax}, {RCX, asmjit::x86::rcx}, {RDX, asmjit::x86::rdx},
+    {RBX, asmjit::x86::rbx}, {RSP, asmjit::x86::rsp}, {RBP, asmjit::x86::rbp},
+    {RSI, asmjit::x86::rsi}, {RDI, asmjit::x86::rdi}, {R8, asmjit::x86::r8},
+    {R9, asmjit::x86::r9},   {R10, asmjit::x86::r10}, {R11, asmjit::x86::r11},
+    {R12, asmjit::x86::r12}, {R13, asmjit::x86::r13}, {R14, asmjit::x86::r14},
+    {R15, asmjit::x86::r15},
+};
+
+const xmmRegMap lookupXmmRegisters = {{XMM0, asmjit::x86::xmm0}};
+
 const x86MnemMap lookupX86Mnemonics = {
     {x86::MOV, asmjit::x86::Inst::kIdMov},
     {x86::ADD, asmjit::x86::Inst::kIdAdd},
@@ -52,6 +66,7 @@ const x86MnemMap lookupX86Mnemonics = {
     {x86::ADDSD, asmjit::x86::Inst::kIdAddsd},
     {x86::MULSD, asmjit::x86::Inst::kIdMulsd},
     {x86::SUBSD, asmjit::x86::Inst::kIdSubsd},
+    {x86::CMP, asmjit::x86::Inst::kIdCmp},
     {x86::JMP, asmjit::x86::Inst::kIdJmp},
     {x86::JGE, asmjit::x86::Inst::kIdJge}};
 

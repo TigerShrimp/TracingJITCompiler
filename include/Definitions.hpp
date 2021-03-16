@@ -3,7 +3,7 @@
 #include <fmt/core.h>
 
 #include <iostream>
-// #define DEBUG_PRINT_ON
+#define DEBUG_PRINT_ON
 #ifdef DEBUG_PRINT_ON
 
 // TODO: do this with std::format instead as soon as clang adds support for it.

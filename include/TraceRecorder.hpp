@@ -14,7 +14,8 @@ struct RecordEntry {
 
 struct Recording {
   std::vector<RecordEntry> recordedTrace;
-  std::set<ProgramCounter> branchTargets;
+  std::set<ProgramCounter> innerBranchTargets;
+  std::set<ProgramCounter> outerBranchTargets;
 };
 
 class TraceRecorder {
@@ -28,7 +29,8 @@ class TraceRecorder {
   ProgramCounter traceStart;
   bool recording;
   std::vector<RecordEntry> recordedTrace;
-  std::set<ProgramCounter> branchTargets;
+  std::set<ProgramCounter> innerBranchTargets;
+  std::set<ProgramCounter> outerBranchTargets;
 };
 
 #endif  // TRACERECORDER_HPP

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ByteCodes.hpp"
+#include "Compiler.hpp"
 #include "Definitions.hpp"
 #include "Interpreter.hpp"
 #include "MemoryHandler.hpp"
@@ -20,6 +21,7 @@ class RunTime {
   void run(Program*);
 
  private:
+  Compiler compiler;
   Interpreter interpreter;
   Profiler profiler;
   MemoryHandler memoryHandler;

@@ -2,13 +2,76 @@
 
 using namespace std;
 
-vector<Instruction> Compiler::compile(Recording recording) {
+CompiledTrace Compiler::compile(Recording recording) {
+  DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
+
+  DEBUG_PRINT("Compiling trace starting\n");
   for (auto entry : recording.recordedTrace) {
-    compile(entry, recording.branchTargets.contains(entry.pc));
-    // TODO: add init and bailout code
+    DEBUG_PRINT("Compiling {}\n", JVM::byteCodeNames.at(entry.inst.mnemonic));
+    compile(entry, recording.innerBranchTargets.contains(entry.pc));
   }
-  return nativeTrace;
+
+  DEBUG_PRINT("Compiling init starting\n");
+  // Code that is run before the trace starts to move variables from local
+  // variable store into usable registers for trace execution
+  // TODO make enter correct, needs offset to allign memory
+  vector<Instruction> initCode;
+  initCode.push_back(
+      {x86::ENTER, {IMMEDIATE, .val = Value(0)}, {IMMEDIATE, .val = Value(0)}});
+  for (const auto& [reg, var] : regInitTable) {
+    Op dst = {REGISTER, .reg = reg};
+    initCode.push_back({x86::MOV, dst, {MEMORY, .mem = {RDI, 8 * (int)var}}});
+    initCode.push_back({x86::MOV, dst, {MEMORY, .mem = {reg, 0}}});
+  }
+
+  DEBUG_PRINT("Compiling bailout starting\n");
+  // Code run after trace is finished, it is the same for default exit at the
+  // end of the trace and for side exits. It writes the values back into the
+  // local variable store, all values are written to and from the trace even if
+  // they are not used, it is simpler this way.
+  vector<Instruction> bailoutCode;
+  map<size_t, ProgramCounter> exitPoints;
+  int id = 0;
+  ProgramCounter bailoutPc = {0, 0};
+  Op bailoutLabel = {LABEL, .pc = bailoutPc};
+  for (const auto& pc : recording.outerBranchTargets) {
+    // Label to jump to when exiting.
+    bailoutCode.push_back({x86::LABEL, labelAt(pc, Value(0))});
+    bailoutCode.push_back(
+        {x86::MOV, {REGISTER, .reg = RAX}, {IMMEDIATE, .val = Value(id)}});
+    bailoutCode.push_back({x86::JMP, bailoutLabel});
+    DEBUG_PRINT("outer branch target: ({},{})\n", pc.methodIndex,
+                pc.instructionIndex);
+    exitPoints[id++] = pc;
+  }
+  Op rdi = {REGISTER, .reg = RDI};
+  Op rdiPtr = {MEMORY, .mem = {RDI, 0}};
+
+  bailoutCode.push_back({x86::LABEL, bailoutLabel});
+  for (const auto& [var, op] : variableTable) {
+    // Since we cannot be sure there is nothing taking up space in RDI, the
+    // register used for holding the local variables, we must push and pop
+    // before and after fetching each variable.
+    bailoutCode.push_back({x86::PUSH, rdi});
+    bailoutCode.push_back(
+        {x86::MOV, rdi, {MEMORY, .mem = {RDI, 8 * (int)var}}});
+    bailoutCode.push_back({x86::MOV, rdiPtr, op});
+    bailoutCode.push_back({x86::POP, rdi});
+  }
+  bailoutCode.push_back(
+      {x86::MOV, {REGISTER, .reg = RAX}, {IMMEDIATE, .val = Value(0)}});
+  bailoutCode.push_back({x86::LEAVE});
+  bailoutCode.push_back({x86::RET});
+  // Combine all branch targets into a single set.
+
+  vector<ProgramCounter> branchTargets;
+  for (auto pc : recording.innerBranchTargets) branchTargets.push_back(pc);
+  for (auto pc : recording.outerBranchTargets) branchTargets.push_back(pc);
+  branchTargets.push_back(bailoutPc);
+  vector<uint8_t> assembledCode =
+      assembler.assemble(initCode, nativeTrace, bailoutCode, branchTargets);
+  return {exitPoints, assembledCode};
 }
 
 void Compiler::resetCompilerState() {
@@ -16,6 +79,12 @@ void Compiler::resetCompilerState() {
   variableTable.clear();
   while (!operandStack.empty()) operandStack.pop();
   // TODO: fill avail regs and xregs with all registers
+  while (!availableRegs.empty()) availableRegs.pop();
+  availableRegs.push(RSI);
+  availableRegs.push(RDX);
+  availableRegs.push(RCX);
+  availableRegs.push(R8);
+  availableRegs.push(R9);
 }
 
 void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
@@ -69,6 +138,7 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
           throw;
         }
       }
+      break;
     }
     case JVM::SIPUSH: {
       operandStack.push({IMMEDIATE, .val = entry.inst.params[0]});
@@ -93,6 +163,7 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
     case JVM::GOTO:
       nativeTrace.push_back(
           {x86::JMP, labelAt(entry.pc, entry.inst.params[0])});
+      break;
     case JVM::IADD: {
       Op op2 = operandStack.top();
       operandStack.pop();
@@ -102,6 +173,7 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       nativeTrace.push_back({x86::MOV, opDst, op1});
       nativeTrace.push_back({x86::ADD, opDst, op2});
       operandStack.push(opDst);
+      break;
     }
     case JVM::IINC: {
       size_t varIndex = entry.inst.params[0].val.intValue;
@@ -111,6 +183,7 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       nativeTrace.push_back({x86::ADD,
                              variableTable[varIndex],
                              {IMMEDIATE, .val = entry.inst.params[1]}});
+      break;
     }
     default:
       break;
@@ -121,7 +194,14 @@ void Compiler::placeInNextAvailableRegister(size_t var, BaseType type) {
   switch (type) {
     case Int:
     case Long: {
-      variableTable[var] = getFirstAvailableReg();
+      // Hittar ett ledigt register.
+      // Om det är ledigt från början -> add to init map (reg->var);
+      // Om det inte är det -> se till init flyttar var till stack frame
+      //   och här gör någon slags mov hit
+      Op reg = getFirstAvailableReg();
+      regInitTable[reg.reg] = var;
+      variableTable[var] = reg;
+      break;
     }
     case Float:
     case Double: {

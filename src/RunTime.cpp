@@ -29,14 +29,17 @@ void RunTime::run(Program *program) {
         DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
                     state->pc.methodIndex, state->pc.instructionIndex,
                     state->stack.size());
-        // break;
         traceRecorder.initRecording(pc);
       }
       if (traceRecorder.isRecording()) {
         if (traceRecorder.record(pc, inst)) {
-          // TODO: Recording done, compile trace!
-          // state->pc = pc;
-          // continue;
+          CompiledTrace compiledTrace =
+              compiler.compile(traceRecorder.getRecording());
+          tracePointer ptr = memoryHandler.writeTrace(compiledTrace.trace);
+          traceHandler.insertTrace(ptr, pc, compiledTrace.exitPoints);
+          state->pc = pc;
+          break;
+          continue;
         }
       }
       interpreter.evalInstruction(program, inst);
