@@ -59,8 +59,6 @@ CompiledTrace Compiler::compile(Recording recording) {
     bailoutCode.push_back({x86::MOV, rdiPtr, op});
     bailoutCode.push_back({x86::POP, rdi});
   }
-  bailoutCode.push_back(
-      {x86::MOV, {REGISTER, .reg = RAX}, {IMMEDIATE, .val = Value(0)}});
   bailoutCode.push_back({x86::LEAVE});
   bailoutCode.push_back({x86::RET});
   // Combine all branch targets into a single set.
@@ -124,13 +122,35 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       switch (op.opType) {
         case REGISTER:
         case MEMORY:
-          variableTable[3] = op;
-          break;
+          // variableTable[3] = op;
+          // break;
         case IMMEDIATE: {
           if (!variableTable.contains(3)) {
             placeInNextAvailableRegister(3, Int);
           }
           nativeTrace.push_back({x86::MOV, variableTable[3], op});
+          break;
+        }
+        default: {
+          cerr << "int in't X register" << endl;
+          throw;
+        }
+      }
+      break;
+    }
+    case JVM::ISTORE_1: {
+      Op op = operandStack.top();
+      operandStack.pop();
+      switch (op.opType) {
+        case REGISTER:
+        case MEMORY:
+          // variableTable[1] = op;
+          // break;
+        case IMMEDIATE: {
+          if (!variableTable.contains(1)) {
+            placeInNextAvailableRegister(1, Int);
+          }
+          nativeTrace.push_back({x86::MOV, variableTable[1], op});
           break;
         }
         default: {

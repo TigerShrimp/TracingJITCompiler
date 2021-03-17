@@ -38,7 +38,6 @@ void RunTime::run(Program *program) {
           tracePointer ptr = memoryHandler.writeTrace(compiledTrace.trace);
           traceHandler.insertTrace(ptr, pc, compiledTrace.exitPoints);
           state->pc = pc;
-          break;
           continue;
         }
       }

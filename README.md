@@ -32,10 +32,10 @@ TODO:
 - ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Compiler.cpp:18:  // TODO make enter correct, needs offset to allign memory
-- ./src/Compiler.cpp:81:  // TODO: fill avail regs and xregs with all registers
-- ./src/Compiler.cpp:94:    // TODO: Change ILOAD_X to regular ILOAD with parameter. Same with
+- ./src/Compiler.cpp:79:  // TODO: fill avail regs and xregs with all registers
+- ./src/Compiler.cpp:92:    // TODO: Change ILOAD_X to regular ILOAD with parameter. Same with
 - ./src/Interpreter.cpp:360:      // TODO: Make Long/Double constants more general
 - ./src/RunTime.cpp:26:      // TODO: note is probably not a very good name.
-- ./src/RunTime.cpp:68:  // TODO: Standardize exception handing.
+- ./src/RunTime.cpp:67:  // TODO: Standardize exception handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

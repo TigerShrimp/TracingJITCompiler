@@ -18,8 +18,13 @@ vector<uint8_t> Assembler::assemble(vector<Instruction>& initCode,
 
   labels.clear();
   for (auto pc : branchTargets) {
-    DEBUG_PRINT("Label at = ({},{})\n", pc.methodIndex, pc.instructionIndex);
     labels[pc] = asmAssembler.newLabel();
+    DEBUG_PRINT("Label at = ({},{}) = {}\n", pc.methodIndex,
+                pc.instructionIndex, labels[pc].id());
+  }
+  DEBUG_PRINT("Number of labels: {}\n", labels.size())
+  for (const auto& [key, val] : labels) {
+    DEBUG_PRINT("Label: ({},{})\n", key.methodIndex, key.instructionIndex);
   }
 
   assemble(asmAssembler, initCode);

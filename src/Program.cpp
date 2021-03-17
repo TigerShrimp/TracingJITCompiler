@@ -69,8 +69,9 @@ void Program::load(int var) {
 }
 
 bool operator<(const ProgramCounter &lhs, const ProgramCounter &rhs) {
-  return (lhs.methodIndex == rhs.methodIndex &&
-          lhs.instructionIndex < rhs.instructionIndex);
+  if (lhs.methodIndex == rhs.methodIndex)
+    return lhs.instructionIndex < rhs.instructionIndex;
+  return lhs.methodIndex < rhs.methodIndex;
 }
 
 bool operator==(const ProgramCounter &lhs, const ProgramCounter &rhs) {
