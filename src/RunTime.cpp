@@ -5,7 +5,7 @@ using namespace std;
 RunTime::RunTime() {}
 RunTime::RunTime(vector<uint8_t> initialTrace, int method, int start, int end)
     : RunTime() {
-  tracePointer tp = memoryHandler.writeTrace(initialTrace);
+  TracePointer tp = memoryHandler.writeTrace(initialTrace);
   traceHandler.insertTrace(tp, method, start, end);
 }
 
@@ -35,7 +35,7 @@ void RunTime::run(Program *program) {
         if (traceRecorder.record(pc, inst)) {
           CompiledTrace compiledTrace =
               compiler.compile(traceRecorder.getRecording());
-          tracePointer ptr = memoryHandler.writeTrace(compiledTrace.trace);
+          TracePointer ptr = memoryHandler.writeTrace(compiledTrace.trace);
           traceHandler.insertTrace(ptr, pc, compiledTrace.exitPoints);
           state->pc = pc;
           continue;

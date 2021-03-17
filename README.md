@@ -30,6 +30,7 @@ To build and run project from root:
 TODO:
 
 - ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
+- ./include/Program.hpp:68:  // TODO: Remove these attributes
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Compiler.cpp:18:  // TODO make enter correct, needs offset to allign memory
 - ./src/Compiler.cpp:79:  // TODO: fill avail regs and xregs with all registers

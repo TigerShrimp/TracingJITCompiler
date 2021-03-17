@@ -28,11 +28,11 @@ void TraceHandler::runTrace(State* state) {
   state->pc = trace.exitPoints[exitPoint];
 }
 
-void TraceHandler::insertTrace(tracePointer ptr, ProgramCounter startPc,
+void TraceHandler::insertTrace(TracePointer ptr, ProgramCounter startPc,
                                std::map<size_t, ProgramCounter> exitPoints) {
   traces[startPc] = {ptr, exitPoints};
 }
-void TraceHandler::insertTrace(tracePointer ptr, size_t method_index,
+void TraceHandler::insertTrace(TracePointer ptr, size_t method_index,
                                size_t start, size_t end) {
   Trace trace = {ptr};
   trace.exitPoints[0] = {end, method_index};

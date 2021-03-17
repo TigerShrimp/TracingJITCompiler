@@ -70,7 +70,8 @@
         "map": "cpp",
         "queue": "cpp",
         "list": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "compare": "cpp"
     },
     "cmake.configureOnOpen": true
 }

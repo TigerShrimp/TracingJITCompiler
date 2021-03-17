@@ -65,6 +65,7 @@ struct Method {
   uint16_t maxStack;
   uint16_t maxLocals;
   std::vector<uint8_t> code;
+  // TODO: Remove these attributes
   ConstantValueAttribute constant;
   StackMapTableAttribute stackMapTable;
   std::string methodString();

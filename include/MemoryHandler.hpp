@@ -12,7 +12,7 @@
 
 typedef long (*pfunc)(void **);
 
-union tracePointer {
+union TracePointer {
   pfunc execute;
   uint8_t *startAddr;
 };
@@ -27,7 +27,7 @@ class MemoryHandler {
   MemoryHandler();
 
   void freeTraces();
-  tracePointer writeTrace(std::vector<uint8_t>);
+  TracePointer writeTrace(std::vector<uint8_t>);
 
  private:
   size_t pageSize;

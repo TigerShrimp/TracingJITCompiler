@@ -6,7 +6,7 @@
 #include "Program.hpp"
 
 struct Trace {
-  tracePointer tracePointer;
+  TracePointer tracePointer;
   std::map<size_t, ProgramCounter> exitPoints;
 };
 
@@ -14,9 +14,9 @@ class TraceHandler {
  public:
   bool hasTrace(ProgramCounter);
   void runTrace(State*);
-  void insertTrace(tracePointer, ProgramCounter,
+  void insertTrace(TracePointer, ProgramCounter,
                    std::map<size_t, ProgramCounter>);
-  void insertTrace(tracePointer, size_t, size_t, size_t);
+  void insertTrace(TracePointer, size_t, size_t, size_t);
 
  private:
   std::map<ProgramCounter, Trace> traces;

@@ -18,7 +18,7 @@ void MemoryHandler::freeTraces() {
   allocatedMemory.clear();
 }
 
-tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
+TracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   // Check that there is enough allocated memory
   if (allocationNeeded(traceBytes.size())) {
     allocateMemory(traceBytes.size());
@@ -34,7 +34,7 @@ tracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   DEBUG_PRINT("\n")
   // Keep track of where the writing started,
   // connect the start address to a tracePointer and return
-  tracePointer tp;
+  TracePointer tp;
   tp.startAddr = startAddr;
   return tp;
 }
