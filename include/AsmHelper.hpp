@@ -12,7 +12,7 @@ typedef std::map<std::string, asmjit::x86::Reg> regMap;
 typedef std::map<std::string, asmjit::x86::Inst::Id> mnemMap;
 typedef std::map<REG, asmjit::x86::Gp> x86RegMap;
 typedef std::map<XREG, asmjit::x86::Reg> xmmRegMap;
-typedef std::map<x86::Inst, asmjit::x86::Inst::Id> x86MnemMap;
+typedef std::map<x86::Mnemonic, asmjit::x86::Inst::Id> x86MnemMap;
 
 const regMap lookupRegisters = {
     {"RAX", asmjit::x86::rax},   {"RCX", asmjit::x86::rcx},

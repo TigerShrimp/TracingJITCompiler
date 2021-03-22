@@ -91,32 +91,20 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
   switch (entry.inst.mnemonic) {
     // TODO: Change ILOAD_X to regular ILOAD with parameter. Same with
     // store/const.
-    case JVM::ILOAD_1: {
+    case JVM::ILOAD: {
+      int var = entry.inst.params[0].val.intValue;
       // Check variableTable
-      if (!variableTable.contains(1)) {
+      if (!variableTable.contains(var)) {
         // If not exist:
         //     assign to register and place in variable table
-        placeInNextAvailableRegister(1, Int);
+        placeInNextAvailableRegister(var, Int);
       }
       // push op to operand stack
-      operandStack.push(variableTable[1]);
+      operandStack.push(variableTable[var]);
       break;
     }
-    case JVM::ILOAD_2: {
-      if (!variableTable.contains(2)) {
-        placeInNextAvailableRegister(2, Int);
-      }
-      operandStack.push(variableTable[2]);
-      break;
-    }
-    case JVM::ILOAD_3: {
-      if (!variableTable.contains(3)) {
-        placeInNextAvailableRegister(3, Int);
-      }
-      operandStack.push(variableTable[3]);
-      break;
-    }
-    case JVM::ISTORE_3: {
+    case JVM::ISTORE: {
+      int var = entry.inst.params[0].val.intValue;
       Op op = operandStack.top();
       operandStack.pop();
       switch (op.opType) {
@@ -125,32 +113,10 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
           // variableTable[3] = op;
           // break;
         case IMMEDIATE: {
-          if (!variableTable.contains(3)) {
-            placeInNextAvailableRegister(3, Int);
+          if (!variableTable.contains(var)) {
+            placeInNextAvailableRegister(var, Int);
           }
-          nativeTrace.push_back({x86::MOV, variableTable[3], op});
-          break;
-        }
-        default: {
-          cerr << "int in't X register" << endl;
-          throw;
-        }
-      }
-      break;
-    }
-    case JVM::ISTORE_1: {
-      Op op = operandStack.top();
-      operandStack.pop();
-      switch (op.opType) {
-        case REGISTER:
-        case MEMORY:
-          // variableTable[1] = op;
-          // break;
-        case IMMEDIATE: {
-          if (!variableTable.contains(1)) {
-            placeInNextAvailableRegister(1, Int);
-          }
-          nativeTrace.push_back({x86::MOV, variableTable[1], op});
+          nativeTrace.push_back({x86::MOV, variableTable[var], op});
           break;
         }
         default: {

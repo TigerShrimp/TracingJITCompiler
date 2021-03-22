@@ -29,6 +29,7 @@ To build and run project from root:
 
 TODO:
 
+- ./include/x86.hpp:5:// TODO change name to Mnemonic
 - ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
 - ./include/Program.hpp:68:  // TODO: Remove these attributes
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.

@@ -31,6 +31,8 @@ class TraceRecorder {
   std::vector<RecordEntry> recordedTrace;
   std::set<ProgramCounter> innerBranchTargets;
   std::set<ProgramCounter> outerBranchTargets;
+  const Value extractParam(const JVM::Mnemonic);
+  const JVM::Mnemonic extractMnemonic(const JVM::Mnemonic);
 };
 
 #endif  // TRACERECORDER_HPP

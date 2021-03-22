@@ -2,8 +2,9 @@
 #define X86_HPP
 #include "Program.hpp"
 
+// TODO change name to Mnemonic
 namespace x86 {
-enum Inst {
+enum Mnemonic {
   MOV,
   ADD,
   ENTER,
@@ -63,7 +64,7 @@ struct Op {
 };
 
 struct Instruction {
-  x86::Inst inst;
+  x86::Mnemonic inst;
   Op op1;
   Op op2;
 };
