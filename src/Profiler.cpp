@@ -1,6 +1,6 @@
 #include "Profiler.hpp"
 
-void Profiler::note(ProgramCounter pc) {
+void Profiler::countVisitFor(ProgramCounter pc) {
   if (pc.methodIndex == lastPc.methodIndex &&
       pc.instructionIndex < lastPc.instructionIndex) {
     loopRecord[pc] += 1;

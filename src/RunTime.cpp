@@ -5,16 +5,17 @@ using namespace std;
 RunTime::RunTime() {}
 RunTime::RunTime(vector<uint8_t> initialTrace, int method, int start, int end)
     : RunTime() {
-  TracePointer tp = memoryHandler.writeTrace(initialTrace);
-  traceHandler.insertTrace(tp, method, start, end);
+  // TODO: Either move this functionality to Compiler or remove
+  // TracePointer tp = memoryHandler.writeTrace(initialTrace);
+  // traceHandler.insertTrace(tp, method, start, end);
 }
 
 bool recordingTrace() { return false; }
 
 void RunTime::run(Program *program) {
   initProgramState(program);
-  // Returning from main means the program stack will be empty and the program
-  // will terminate.
+  // Returning from main means the program stack will be
+  // empty and the program will terminate.
   while (!program->states.empty()) {
     DEBUG_PRINT("States: {}\n", program->states.size());
     State *state = program->states.top();
@@ -23,8 +24,7 @@ void RunTime::run(Program *program) {
     } else {
       ProgramCounter pc = state->pc;
       ByteCodeInstruction inst = interpreter.prepareNext(program);
-      // TODO: note is probably not a very good name.
-      profiler.note(pc);
+      profiler.countVisitFor(pc);
       if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
         DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
                     state->pc.methodIndex, state->pc.instructionIndex,
@@ -32,11 +32,11 @@ void RunTime::run(Program *program) {
         traceRecorder.initRecording(pc);
       }
       if (traceRecorder.isRecording()) {
-        if (traceRecorder.record(pc, inst)) {
-          CompiledTrace compiledTrace =
-              compiler.compile(traceRecorder.getRecording());
-          TracePointer ptr = memoryHandler.writeTrace(compiledTrace.trace);
-          traceHandler.insertTrace(ptr, pc, compiledTrace.exitPoints);
+        bool recordingDone = traceRecorder.record(pc, inst);
+        if (recordingDone) {
+          Recording recording = traceRecorder.getRecording();
+          Trace trace = compiler.compileAndInstall(recording);
+          traceHandler.insertTrace(pc, trace);
           state->pc = pc;
           continue;
         }
@@ -44,7 +44,6 @@ void RunTime::run(Program *program) {
       interpreter.evalInstruction(program, inst);
     }
   }
-  memoryHandler.freeTraces();
 }
 
 void RunTime::initProgramState(Program *program) {

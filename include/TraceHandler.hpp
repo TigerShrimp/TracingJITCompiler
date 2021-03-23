@@ -14,6 +14,7 @@ class TraceHandler {
  public:
   bool hasTrace(ProgramCounter);
   void runTrace(State*);
+  void insertTrace(ProgramCounter, Trace);
   void insertTrace(TracePointer, ProgramCounter,
                    std::map<size_t, ProgramCounter>);
   void insertTrace(TracePointer, size_t, size_t, size_t);

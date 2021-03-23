@@ -7,7 +7,7 @@
 class Profiler {
  public:
   bool isHot(ProgramCounter);
-  void note(ProgramCounter);
+  void countVisitFor(ProgramCounter);
 
  private:
   static const size_t hotThreshold = 2;

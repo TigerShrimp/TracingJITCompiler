@@ -2,7 +2,9 @@
 
 using namespace std;
 
-CompiledTrace Compiler::compile(Recording recording) {
+Compiler::~Compiler() { memoryHandler.freeTraces(); }
+
+Trace Compiler::compileAndInstall(Recording recording) {
   DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
 
@@ -69,7 +71,8 @@ CompiledTrace Compiler::compile(Recording recording) {
   branchTargets.push_back(bailoutPc);
   vector<uint8_t> assembledCode =
       assembler.assemble(initCode, nativeTrace, bailoutCode, branchTargets);
-  return {exitPoints, assembledCode};
+  TracePointer ptr = memoryHandler.writeTrace(assembledCode);
+  return {ptr, exitPoints};
 }
 
 void Compiler::resetCompilerState() {

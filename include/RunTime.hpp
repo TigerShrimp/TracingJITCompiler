@@ -24,7 +24,6 @@ class RunTime {
   Compiler compiler;
   Interpreter interpreter;
   Profiler profiler;
-  MemoryHandler memoryHandler;
   TraceHandler traceHandler;
   TraceRecorder traceRecorder;
 
