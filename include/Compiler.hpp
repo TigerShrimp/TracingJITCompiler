@@ -31,16 +31,26 @@ class Compiler {
   MemoryHandler memoryHandler;
   std::vector<Instruction> nativeTrace;
   std::map<size_t, Op> variableTable;
-  std::map<REG, size_t> regInitTable;
+  std::map<Op, size_t> initTable;
+  std::vector<Instruction> bailoutCode;
+  const ProgramCounter exitPc = {0, 0};
+  const Op exitLabel = {LABEL, .pc = exitPc};
+  long exitId;
+  std::map<long, ProgramCounter> exitPoints;
   std::stack<Op> operandStack;
   std::priority_queue<REG> availableRegs;
   std::priority_queue<XREG> availableXRegs;
   std::map<size_t, Op> initRecord;
   void resetCompilerState();
   void compile(RecordEntry, bool);
+  std::vector<Instruction> restoreInitState();
+  void compileBailoutFor(Op);
+  std::vector<Instruction> generateMovInstruction(Op, Op);
+  std::vector<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
   void placeInNextAvailableRegister(size_t, BaseType);
   Op getFirstAvailableReg();
   Op labelAt(ProgramCounter, Value);
 };
+inline void concat(std::vector<Instruction>&, std::vector<Instruction>);
 
 #endif  // COMPILER_HPP

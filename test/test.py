@@ -1,9 +1,17 @@
 import os
 import subprocess
+try:
+    import inflect
+    inflect_exists = True
+except ImportError as e:
+    inlect_exist = False
+
 
 os.chdir('test/')
 class_files = os.listdir()
 class_files = [c for c in class_files if c.endswith('class')]
+total_tests = len(class_files)
+
 
 tests_passed = 0
 for class_file in class_files:
@@ -29,6 +37,14 @@ for class_file in class_files:
         print('\033[91mTest {} failed: \n\tGot: {}\tExpected: {}\033[0m'.format(
             class_name, tiger_shrimp_out, java_out), end='')
 
-print('Tests: {}/{} passed'.format(tests_passed, len(class_files)))
+if inflect:
+    p = inflect.engine()
+    tests_passed_str = p.number_to_words(tests_passed)
+    total_tests_str = p.number_to_words(total_tests)
+else:
+    tests_passed_str = tests_passed
+    total_tests_str = total_tests
+
+print('Tests: {}/{} passed'.format(tests_passed, total_tests))
 subprocess.run(['say', 'You passed {} out of {} tests, are you really pleased about that?'.format(
-    tests_passed, len(class_files)), '-v', 'Daniel'])
+    tests_passed_str, total_tests_str), '-v', 'Yuri'])

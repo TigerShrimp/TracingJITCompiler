@@ -63,6 +63,9 @@ struct Op {
   ProgramCounter pc;
 };
 
+bool operator<(const Op&, const Op&);
+bool operator==(const Op&, const Op&);
+
 struct Instruction {
   x86::Mnemonic inst;
   Op op1;

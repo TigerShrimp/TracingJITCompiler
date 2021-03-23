@@ -158,6 +158,7 @@ Value operator/(const Value &lhs, const Value &rhs) {
   }
 }
 bool operator<(const Value &lhs, const Value &rhs) {
+  if (lhs.type.type != rhs.type.type) return lhs.type.type < rhs.type.type;
   switch (lhs.type.type) {
     case Int:
       return lhs.val.intValue < rhs.val.intValue;

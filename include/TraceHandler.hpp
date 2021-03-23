@@ -7,7 +7,7 @@
 
 struct Trace {
   TracePointer tracePointer;
-  std::map<size_t, ProgramCounter> exitPoints;
+  std::map<long, ProgramCounter> exitPoints;
 };
 
 class TraceHandler {
