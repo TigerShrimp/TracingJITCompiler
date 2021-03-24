@@ -4,7 +4,7 @@ using namespace std;
 
 Compiler::~Compiler() { memoryHandler.freeTraces(); }
 
-Trace Compiler::compileAndInstall(Recording recording) {
+Trace Compiler::compileAndInstall(size_t maxLocals, Recording recording) {
   DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
 
@@ -19,8 +19,9 @@ Trace Compiler::compileAndInstall(Recording recording) {
   // variable store into usable registers for trace execution
   // TODO make enter correct, needs offset to allign memory
   vector<Instruction> initCode;
-  initCode.push_back(
-      {x86::ENTER, {IMMEDIATE, .val = Value(0)}, {IMMEDIATE, .val = Value(0)}});
+  initCode.push_back({x86::ENTER,
+                      {IMMEDIATE, .val = Value(16)},
+                      {IMMEDIATE, .val = Value(0)}});
   for (const auto& [dst, var] : initTable) {
     initCode.push_back({x86::MOV, dst, {MEMORY, .mem = {RDI, 8 * (int)var}}});
     initCode.push_back({x86::MOV, dst, {MEMORY, .mem = {dst.reg, 0}}});
@@ -57,7 +58,7 @@ Trace Compiler::compileAndInstall(Recording recording) {
   vector<uint8_t> assembledCode =
       assembler.assemble(initCode, nativeTrace, bailoutCode, branchTargets);
   TracePointer ptr = memoryHandler.writeTrace(assembledCode);
-  return {ptr, exitPoints};
+  return {ptr, exitPoints, maxLocals};
 }
 
 void Compiler::resetCompilerState() {
@@ -118,7 +119,7 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
           if (!variableTable.contains(var)) {
             placeInNextAvailableRegister(var, Int);
           }
-          concat(nativeTrace, generateMovInstruction(variableTable[var], op));
+          concat(nativeTrace, generateMov(variableTable[var], op));
           break;
         }
         default: {
@@ -128,41 +129,42 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       }
       break;
     }
-    case JVM::SIPUSH: {
+    case JVM::BIPUSH:
+    case JVM::SIPUSH:
+    case JVM::LDC: {
       operandStack.push({IMMEDIATE, .val = entry.inst.params[0]});
       break;
     }
-    case JVM::IF_ICMPGE: {
-      Op op2 = operandStack.top();
-      operandStack.pop();
-      Op op1 = operandStack.top();
-      operandStack.pop();
-      if (op1.opType == REGISTER || op1.opType == MEMORY) {
-        nativeTrace.push_back({x86::CMP, op1, op2});
-        Op label = labelAt(entry.pc, entry.inst.params[0]);
-        nativeTrace.push_back({x86::JGE, label});
-        compileBailoutFor(label);
-      } else {
-        cerr << "Handle move to reg before operation" << endl;
-        throw;
-      }
+    case JVM::IF_ICMPEQ: {
+      concat(
+          nativeTrace,
+          generateCondBranch(x86::JE, labelAt(entry.pc, entry.inst.params[0])));
       break;
     }
-
+    case JVM::IF_ICMPGE: {
+      concat(nativeTrace,
+             generateCondBranch(x86::JGE,
+                                labelAt(entry.pc, entry.inst.params[0])));
+      break;
+    }
+    case JVM::IF_ICMPLE: {
+      concat(nativeTrace,
+             generateCondBranch(x86::JLE,
+                                labelAt(entry.pc, entry.inst.params[0])));
+      break;
+    }
     case JVM::GOTO:
       concat(nativeTrace, restoreInitState());
       nativeTrace.push_back(
           {x86::JMP, labelAt(entry.pc, entry.inst.params[0])});
       break;
     case JVM::IADD: {
-      Op op2 = operandStack.top();
-      operandStack.pop();
-      Op op1 = operandStack.top();
-      operandStack.pop();
-      Op opDst = getFirstAvailableReg();
-      concat(nativeTrace, generateMovInstruction(opDst, op1));
-      nativeTrace.push_back({x86::ADD, opDst, op2});
-      operandStack.push(opDst);
+      concat(nativeTrace, generateArithmetic(x86::ADD));
+      break;
+    }
+    case JVM::ISUB: {
+      concat(nativeTrace, generateArithmetic(x86::SUB));
+
       break;
     }
     case JVM::IINC: {
@@ -176,7 +178,9 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       break;
     }
     default:
-      break;
+      cerr << "Compilen't " << JVM::byteCodeNames.at(entry.inst.mnemonic)
+           << " yet" << endl;
+      throw;
   }
 }
 
@@ -242,17 +246,17 @@ vector<Instruction> Compiler::movWithSwap(map<size_t, Op>& currVariableTable,
   for (const auto& [var1, op1] : currVariableTable) {
     if (dst == op1) {
       instructions.push_back({x86::PUSH, op1});
-      concat(instructions, generateMovInstruction(dst, currVariableTable[var]));
+      concat(instructions, generateMov(dst, currVariableTable[var]));
       instructions.push_back({x86::POP, currVariableTable[var]});
       currVariableTable[var1] = currVariableTable[var];
       currVariableTable[var] = dst;
       return instructions;
     }
   }
-  return generateMovInstruction(dst, currVariableTable[var]);
+  return generateMov(dst, currVariableTable[var]);
 }
 
-vector<Instruction> Compiler::generateMovInstruction(Op dst, Op src) {
+vector<Instruction> Compiler::generateMov(Op dst, Op src) {
   vector<Instruction> instructions;
   if (dst == src) {
     return instructions;
@@ -265,10 +269,41 @@ vector<Instruction> Compiler::generateMovInstruction(Op dst, Op src) {
     instructions.push_back({x86::PUSH, src});
     instructions.push_back({x86::POP, dst});
   } else {
-    cerr << "generateMovInstructione: handle combination dst: " << dst.opType
+    cerr << "generateMove: handle combination dst: " << dst.opType
          << " src: " << src.opType << endl;
     throw;
   }
+  return instructions;
+}
+
+vector<Instruction> Compiler::generateCondBranch(x86::Mnemonic instr,
+                                                 Op label) {
+  vector<Instruction> instructions;
+  Op op2 = operandStack.top();
+  operandStack.pop();
+  Op op1 = operandStack.top();
+  operandStack.pop();
+  if (op1.opType == REGISTER || op1.opType == MEMORY) {
+    instructions.push_back({x86::CMP, op1, op2});
+    instructions.push_back({instr, label});
+    compileBailoutFor(label);
+  } else {
+    cerr << "Handle move to reg before operation" << endl;
+    throw;
+  }
+  return instructions;
+}
+
+vector<Instruction> Compiler::generateArithmetic(x86::Mnemonic inst) {
+  vector<Instruction> instructions;
+  Op op2 = operandStack.top();
+  operandStack.pop();
+  Op op1 = operandStack.top();
+  operandStack.pop();
+  Op opDst = getFirstAvailableReg();
+  concat(instructions, generateMov(opDst, op1));
+  instructions.push_back({inst, opDst, op2});
+  operandStack.push(opDst);
   return instructions;
 }
 

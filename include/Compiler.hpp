@@ -24,7 +24,7 @@ class Compiler {
   // Handle jumps, (fallthrough to continue on trace), maybe go through trace
   // backwards.
   // Put guards, input bailout code.
-  Trace compileAndInstall(Recording);
+  Trace compileAndInstall(size_t, Recording);
 
  private:
   Assembler assembler;
@@ -45,7 +45,9 @@ class Compiler {
   void compile(RecordEntry, bool);
   std::vector<Instruction> restoreInitState();
   void compileBailoutFor(Op);
-  std::vector<Instruction> generateMovInstruction(Op, Op);
+  std::vector<Instruction> generateMov(Op, Op);
+  std::vector<Instruction> generateCondBranch(x86::Mnemonic, Op);
+  std::vector<Instruction> generateArithmetic(x86::Mnemonic);
   std::vector<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
   void placeInNextAvailableRegister(size_t, BaseType);
   Op getFirstAvailableReg();

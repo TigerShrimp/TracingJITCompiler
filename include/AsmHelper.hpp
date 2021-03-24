@@ -54,11 +54,11 @@ const xmmRegMap lookupXmmRegisters = {{XMM0, asmjit::x86::xmm0}};
 const x86MnemMap lookupX86Mnemonics = {
     {x86::MOV, asmjit::x86::Inst::kIdMov},
     {x86::ADD, asmjit::x86::Inst::kIdAdd},
+    {x86::SUB, asmjit::x86::Inst::kIdSub},
     {x86::ENTER, asmjit::x86::Inst::kIdEnter},
     {x86::LEAVE, asmjit::x86::Inst::kIdLeave},
     {x86::RET, asmjit::x86::Inst::kIdRet},
     {x86::IMUL, asmjit::x86::Inst::kIdImul},
-    {x86::SUB, asmjit::x86::Inst::kIdSub},
     {x86::PUSH, asmjit::x86::Inst::kIdPush},
     {x86::POP, asmjit::x86::Inst::kIdPop},
     {x86::INC, asmjit::x86::Inst::kIdInc},
@@ -68,6 +68,8 @@ const x86MnemMap lookupX86Mnemonics = {
     {x86::SUBSD, asmjit::x86::Inst::kIdSubsd},
     {x86::CMP, asmjit::x86::Inst::kIdCmp},
     {x86::JMP, asmjit::x86::Inst::kIdJmp},
-    {x86::JGE, asmjit::x86::Inst::kIdJge}};
+    {x86::JGE, asmjit::x86::Inst::kIdJge},
+    {x86::JE, asmjit::x86::Inst::kIdJe},
+    {x86::JLE, asmjit::x86::Inst::kIdJle}};
 
 #endif  // ASM_HELPER_HPP

@@ -8,6 +8,7 @@
 struct Trace {
   TracePointer tracePointer;
   std::map<long, ProgramCounter> exitPoints;
+  size_t maxLocals;
 };
 
 class TraceHandler {

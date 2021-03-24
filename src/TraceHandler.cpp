@@ -11,14 +11,14 @@ bool TraceHandler::hasTrace(ProgramCounter pc) {
 
 void TraceHandler::runTrace(State* state) {
   DEBUG_PRINT("Will run trace\n");
-  void** args = (void**)malloc(sizeof(void*) * state->locals.size());
-  DEBUG_PRINT("Writing store\n");
+  Trace trace = traces[state->pc];
+  void** args = (void**)malloc(sizeof(void*) * trace.maxLocals);
+  DEBUG_PRINT("Writing store, {}\n", state->locals.size());
   for (const auto& [key, local] : state->locals) {
     DEBUG_PRINT("Var {} val {} addr {}\n", key, local.val.intValue,
                 (void*)&(local.val));
     args[key] = (void*)&(local.val);
   }
-  Trace trace = traces[state->pc];
   DEBUG_PRINT("Will run trace at {}\n", (void*)&trace.tracePointer.startAddr);
   size_t exitPoint = trace.tracePointer.execute(args);
   DEBUG_PRINT("Exit point {} = ({},{})\n", exitPoint,

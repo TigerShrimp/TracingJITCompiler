@@ -5,6 +5,7 @@ bool TraceRecorder::isRecording() { return recording; }
 
 void TraceRecorder::initRecording(ProgramCounter pc) {
   recording = true;
+  lastInstructionWasBranch = false;
   traceStart = pc;
   recordedTrace.clear();
   innerBranchTargets.clear();
@@ -33,23 +34,33 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
 #endif
     return true;
   }
+  if (lastInstructionWasBranch) branchFlip(pc);
   switch (inst.mnemonic) {
-    case JVM::GOTO:
-    case JVM::IFGT:
-    case JVM::IF_ICMPGE:
-    case JVM::IF_ICMPGT: {
-      ProgramCounter branchTarget = pc;
+    case JVM::GOTO: {
       int offset = inst.params[0].val.intValue;
-      branchTarget.instructionIndex += offset;
-      // Backward branches are only present at the unconditional branch that
-      // takes the pc back to the start of the loop so we treat them differently
-      if (offset < 0)
+      if (offset > 0) {  // Unconditional forward branch -- omit
+        return false;
+      } else {
+        ProgramCounter branchTarget = pc;
+        branchTarget.instructionIndex += offset;
         innerBranchTargets.insert(branchTarget);
-      else
-        outerBranchTargets.insert(branchTarget);
+      }
       break;
     }
-
+    case JVM::IFGT:
+    case JVM::IF_ICMPGE:
+    case JVM::IF_ICMPGT:
+    case JVM::IF_ICMPNE: {
+      lastInstructionWasBranch = true;
+      break;
+    }
+    case JVM::INVOKESTATIC: {
+      // Recursive function call
+      if (traceStart.methodIndex == inst.params[0].val.intValue) {
+        recording = false;
+        return false;
+      }
+    }
     case JVM::ICONST_M1... JVM::ICONST_5:
     case JVM::LCONST_0... JVM::LCONST_1:
     case JVM::FCONST_0... JVM::FCONST_2:
@@ -64,6 +75,54 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
   }
   recordedTrace.push_back({pc, inst});
   return false;
+}
+
+void TraceRecorder::branchFlip(ProgramCounter nextPc) {
+  lastInstructionWasBranch = false;
+  RecordEntry branchEntry = recordedTrace[recordedTrace.size() - 1];
+  ProgramCounter branchTarget = branchEntry.pc;
+  int offset = branchEntry.inst.params[0].val.intValue;
+  branchTarget.instructionIndex += offset;
+  // If branchTarget == pc then we must flip the branch condition so because
+  // we want the jump to happen if the flow does not follow the trace.
+  if (branchTarget == nextPc) {
+    DEBUG_PRINT("Will flip branch {}\n",
+                JVM::byteCodeNames.at(branchEntry.inst.mnemonic));
+    offset = 3;  // Offset to the instruction after
+    branchTarget = branchEntry.pc;
+    branchTarget.instructionIndex += offset;
+    recordedTrace[recordedTrace.size() - 1].inst.params[0].val.intValue =
+        offset;
+    JVM::Mnemonic flipped =
+        recordedTrace[recordedTrace.size() - 1].inst.mnemonic;
+    switch (branchEntry.inst.mnemonic) {
+      case JVM::IFGT:
+        flipped = JVM::IFLE;
+        break;
+      case JVM::IF_ICMPGE:
+        flipped = JVM::IF_ICMPLT;
+        break;
+      case JVM::IF_ICMPGT:
+        flipped = JVM::IF_ICMPLE;
+        break;
+      case JVM::IF_ICMPNE:
+        flipped = JVM::IF_ICMPEQ;
+        break;
+      default:
+        break;
+    }
+    recordedTrace[recordedTrace.size() - 1].inst.mnemonic = flipped;
+    DEBUG_PRINT("Will flipped branch to {}\n",
+                JVM::byteCodeNames.at(
+                    recordedTrace[recordedTrace.size() - 1].inst.mnemonic));
+  }
+
+  // Backward branches are only present at the unconditional branch that
+  // takes the pc back to the start of the loop so we treat them differently
+  if (offset < 0)
+    innerBranchTargets.insert(branchTarget);
+  else
+    outerBranchTargets.insert(branchTarget);
 }
 
 const Value TraceRecorder::extractParam(const JVM::Mnemonic mnem) {

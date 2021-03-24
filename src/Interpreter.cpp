@@ -181,6 +181,13 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       if (lhs > rhs) program->jump(offset, 3);
       break;
     }
+    case IF_ICMPNE: {
+      int rhs = program->pop().val.intValue;
+      int lhs = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (lhs != rhs) program->jump(offset, 3);
+      break;
+    }
     case GOTO: {
       int offset = inst.params[0].val.intValue;
       program->jump(offset, 3);
@@ -333,7 +340,8 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
     case NOP:
       break;
     default: {
-      cerr << "byte-code " << inst.mnemonic << byteCodeNames.at(inst.mnemonic)
+      cerr << "byte-code " << (size_t)inst.mnemonic
+           << byteCodeNames.at(inst.mnemonic)
            << " not supported at this moment, please come back later <3"
            << endl;
       break;
@@ -351,6 +359,7 @@ ByteCodeInstruction Interpreter::prepareNext(Program *program) {
     case IFGT:
     case IF_ICMPGE:
     case IF_ICMPGT:
+    case IF_ICMPNE:
     case GOTO: {
       params.push_back(Value(readParametersAsInt(program)));
       break;

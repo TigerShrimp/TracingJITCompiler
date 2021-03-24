@@ -28,9 +28,11 @@ class TraceRecorder {
  private:
   ProgramCounter traceStart;
   bool recording;
+  bool lastInstructionWasBranch;
   std::vector<RecordEntry> recordedTrace;
   std::set<ProgramCounter> innerBranchTargets;
   std::set<ProgramCounter> outerBranchTargets;
+  void branchFlip(ProgramCounter);
   const Value extractParam(const JVM::Mnemonic);
   const JVM::Mnemonic extractMnemonic(const JVM::Mnemonic);
 };

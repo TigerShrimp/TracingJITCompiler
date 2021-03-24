@@ -60,6 +60,7 @@ void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
       case x86::POP:
       case x86::INC:
       case x86::JMP:
+      case x86::JE:
       case x86::JGE: {
         asmjit::Operand op = convert(inst.op1);
         err = asmAssembler.emit(lookupX86Mnemonics.at(inst.inst), op);

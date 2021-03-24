@@ -7,11 +7,11 @@ namespace x86 {
 enum Mnemonic {
   MOV,
   ADD,
+  SUB,
   ENTER,
   LEAVE,
   RET,
   IMUL,
-  SUB,
   PUSH,
   POP,
   INC,
@@ -21,6 +21,8 @@ enum Mnemonic {
   SUBSD,
   CMP,
   JGE,
+  JE,
+  JLE,
   JMP,
   // TigerShrimp specific
   LABEL

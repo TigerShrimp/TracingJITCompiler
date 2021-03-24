@@ -71,7 +71,9 @@
         "queue": "cpp",
         "list": "cpp",
         "set": "cpp",
-        "compare": "cpp"
+        "compare": "cpp",
+        "__functional_03": "cpp",
+        "memory_resource": "cpp"
     },
     "cmake.configureOnOpen": true
 }

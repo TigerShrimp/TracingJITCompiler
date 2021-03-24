@@ -37,6 +37,8 @@ void interpretJava(string path, RunTime runTime) {
   DEBUG_PRINT("{}", prg->programString());
 
   runTime.run(prg);
+  DEBUG_PRINT("Program exited\n");
+  delete prg;
 }
 
 RunTime assembleAssembly(string path, int methodIndex, int start, int end) {

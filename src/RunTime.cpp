@@ -35,7 +35,8 @@ void RunTime::run(Program *program) {
         bool recordingDone = traceRecorder.record(pc, inst);
         if (recordingDone) {
           Recording recording = traceRecorder.getRecording();
-          Trace trace = compiler.compileAndInstall(recording);
+          Trace trace = compiler.compileAndInstall(
+              program->methods[pc.methodIndex].maxLocals, recording);
           traceHandler.insertTrace(pc, trace);
           state->pc = pc;
           continue;

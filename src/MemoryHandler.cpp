@@ -25,7 +25,7 @@ TracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   }
   // Write the trace to memory
   uint8_t* startAddr = cursor;
-  DEBUG_PRINT("Trace start address: {}\n", startAddr)
+  DEBUG_PRINT("Trace start address: 0x{:x}\n", (size_t)startAddr)
 
   for (auto byte : traceBytes) {
     DEBUG_PRINT("{:02X}", byte);
