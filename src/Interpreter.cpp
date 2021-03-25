@@ -329,6 +329,9 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       break;
     }
     // Misc
+    case DUP:
+      program->push(program->states.top()->stack.top());
+      break;
     case GETSTATIC: {
       // Only use for this at the moment is to get the parameter for the
       // print-function. In reality it should read parameters to get index of
@@ -337,10 +340,8 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       program->jump(2);
       break;
     }
-    case NOP:
-      break;
     default: {
-      cerr << "byte-code " << (size_t)inst.mnemonic
+      cerr << "byte-code " << (size_t)inst.mnemonic << " "
            << byteCodeNames.at(inst.mnemonic)
            << " not supported at this moment, please come back later <3"
            << endl;

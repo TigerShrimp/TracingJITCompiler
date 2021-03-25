@@ -4,7 +4,7 @@ using namespace std;
 
 Compiler::~Compiler() { memoryHandler.freeTraces(); }
 
-Trace Compiler::compileAndInstall(size_t maxLocals, Recording recording) {
+Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
 
@@ -17,10 +17,15 @@ Trace Compiler::compileAndInstall(size_t maxLocals, Recording recording) {
   DEBUG_PRINT("Compiling init starting\n");
   // Code that is run before the trace starts to move variables from local
   // variable store into usable registers for trace execution
-  // TODO make enter correct, needs offset to allign memory
+
   vector<Instruction> initCode;
+  // We allocate space as if all local variables might be in memory at the same
+  // time even though they might not be. This is a trade-off between memory
+  // efficiency and simplicity of the code.
+
+  // TODO: change explicit 8 to variable "sizeOfRegister".
   initCode.push_back({x86::ENTER,
-                      {IMMEDIATE, .val = Value(16)},
+                      {IMMEDIATE, .val = Value(8 * maxLocals)},
                       {IMMEDIATE, .val = Value(0)}});
   for (const auto& [dst, var] : initTable) {
     initCode.push_back({x86::MOV, dst, {MEMORY, .mem = {RDI, 8 * (int)var}}});
@@ -68,14 +73,13 @@ void Compiler::resetCompilerState() {
   exitPoints.clear();
   variableTable.clear();
   exitId = 0;
+  // TODO: Maybe include RDI and RAX
+  static const vector<REG> regs = {RSI, RDX, RCX, R8,  R9,  R10,
+                                   R11, RBX, R12, R13, R14, R15};
   while (!operandStack.empty()) operandStack.pop();
   // TODO: fill avail regs and xregs with all registers
   while (!availableRegs.empty()) availableRegs.pop();
-  availableRegs.push(RSI);
-  availableRegs.push(RDX);
-  availableRegs.push(RCX);
-  availableRegs.push(R8);
-  availableRegs.push(R9);
+  for (REG r : regs) availableRegs.push(r);
 }
 
 void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
@@ -93,32 +97,25 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
         placeInNextAvailableRegister(var, Int);
       }
       // push op to operand stack
-      operandStack.push(variableTable[var]);
+      Op dst = getFirstAvailableReg();
+      if (variableTable[var].opType == REGISTER) {
+        registerQueue.update(variableTable[var].reg);
+      }
+      concat(nativeTrace, generateMov(dst, variableTable[var]));
+      operandStack.push(dst);
       break;
     }
     case JVM::ISTORE: {
       int var = entry.inst.params[0].val.intValue;
-      Op op = operandStack.top();
-      operandStack.pop();
+      Op op = popAndFree();
       switch (op.opType) {
         case REGISTER:
-          // We do this in a more convoluted way to make sure that the variable
-          // switches registers so that we can test the functionality of the
-          // bailout code.
-          if (variableTable.contains(var) &&
-              variableTable[var].opType == REGISTER) {
-            availableRegs.push(variableTable[var].reg);
-            variableTable[var] = op;
-            break;
-          } else {
-            availableRegs.push(op.reg);
-            // Intentional fallthrough
-          }
         case MEMORY:
         case IMMEDIATE: {
           if (!variableTable.contains(var)) {
             placeInNextAvailableRegister(var, Int);
           }
+          registerQueue.update(variableTable[var].reg);
           concat(nativeTrace, generateMov(variableTable[var], op));
           break;
         }
@@ -184,6 +181,22 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
   }
 }
 
+Op Compiler::popAndFree() {
+  Op op = operandStack.top();
+  operandStack.pop();
+  switch (op.opType) {
+    case REGISTER:
+      availableRegs.push(op.reg);
+      break;
+    case XMM_REGISTER:
+      availableXRegs.push(op.xreg);
+      break;
+    default:
+      break;
+  }
+  return op;
+}
+
 void Compiler::placeInNextAvailableRegister(size_t var, BaseType type) {
   switch (type) {
     case Int:
@@ -192,15 +205,26 @@ void Compiler::placeInNextAvailableRegister(size_t var, BaseType type) {
       // Om det är ledigt från början -> add to init map (reg->var);
       // Om det inte är det -> se till init flyttar var till stack frame
       //   och här gör någon slags mov hit
-      Op reg = getFirstAvailableReg();
-      initTable[reg] = var;
-      variableTable[var] = reg;
+      if (availableRegs.empty()) {
+        Op frameAddr = {MEMORY, .mem = {RBP, (int)var * 8}};
+        initTable[frameAddr] = var;
+        Op reg = spillRegister();
+        nativeTrace.push_back({x86::MOV, reg, frameAddr});
+        variableTable[var] = reg;
+      } else {
+        REG reg = availableRegs.front();
+        availableRegs.pop();
+        registerQueue.update(reg);
+        Op regOp = {REGISTER, .reg = reg};
+        initTable[regOp] = var;
+        variableTable[var] = regOp;
+      }
       break;
     }
     case Float:
     case Double: {
       if (!availableXRegs.empty()) {
-        XREG xreg = availableXRegs.top();
+        XREG xreg = availableXRegs.front();
         availableXRegs.pop();
         variableTable[var] = {XMM_REGISTER, .xreg = xreg};
       } else {
@@ -213,7 +237,40 @@ void Compiler::placeInNextAvailableRegister(size_t var, BaseType type) {
   }
 }
 
+Op Compiler::getFirstAvailableReg() {
+  Op reg;
+  if (!availableRegs.empty()) {
+    reg = {REGISTER, .reg = availableRegs.front()};
+    availableRegs.pop();
+  } else {
+    reg = spillRegister();
+  }
+  registerQueue.update(reg.reg);
+  return reg;
+}
+
+Op Compiler::spillRegister() {
+  REG spillReg = registerQueue.get();
+  Op reg = {REGISTER, .reg = spillReg};
+  int varToSpill = -1;
+  for (auto const& [var, op] : variableTable) {
+    if (op == reg) {
+      varToSpill = var;
+      break;
+    }
+  }
+  assert(varToSpill != -1 && "Register to spill not in variable store");
+  Op frameAddr = {MEMORY, .mem = {RBP, 8 * varToSpill}};
+  nativeTrace.push_back({x86::MOV, frameAddr, reg});
+  variableTable[varToSpill] = frameAddr;
+  return reg;
+}
+
 void Compiler::compileBailoutFor(Op label) {
+  if (operandStack.size() != 0) {
+    cerr << "Operand stack not empty upon leaving trace" << endl;
+    throw;
+  }
   bailoutCode.push_back({x86::LABEL, label});
   concat(bailoutCode, restoreInitState());
   long idForPc = exitId++;
@@ -279,10 +336,8 @@ vector<Instruction> Compiler::generateMov(Op dst, Op src) {
 vector<Instruction> Compiler::generateCondBranch(x86::Mnemonic instr,
                                                  Op label) {
   vector<Instruction> instructions;
-  Op op2 = operandStack.top();
-  operandStack.pop();
-  Op op1 = operandStack.top();
-  operandStack.pop();
+  Op op2 = popAndFree();
+  Op op1 = popAndFree();
   if (op1.opType == REGISTER || op1.opType == MEMORY) {
     instructions.push_back({x86::CMP, op1, op2});
     instructions.push_back({instr, label});
@@ -300,22 +355,19 @@ vector<Instruction> Compiler::generateArithmetic(x86::Mnemonic inst) {
   operandStack.pop();
   Op op1 = operandStack.top();
   operandStack.pop();
-  Op opDst = getFirstAvailableReg();
-  concat(instructions, generateMov(opDst, op1));
+  Op opDst;
+  if (op1.opType == REGISTER) {
+    opDst = op1;
+  } else {
+    opDst = getFirstAvailableReg();
+    concat(instructions, generateMov(opDst, op1));
+  }
+  if (op2.opType == REGISTER) {
+    availableRegs.push(op2.reg);
+  }
   instructions.push_back({inst, opDst, op2});
   operandStack.push(opDst);
   return instructions;
-}
-
-Op Compiler::getFirstAvailableReg() {
-  if (!availableRegs.empty()) {
-    REG reg = availableRegs.top();
-    availableRegs.pop();
-    return {REGISTER, .reg = reg};
-  } else {
-    cerr << "Can not handle non-free registers yet" << endl;
-    throw;
-  }
 }
 
 Op Compiler::labelAt(ProgramCounter pc, Value offset) {

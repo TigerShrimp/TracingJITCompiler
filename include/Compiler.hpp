@@ -11,6 +11,7 @@
 #include "MemoryHandler.hpp"
 #include "TraceHandler.hpp"
 #include "TraceRecorder.hpp"
+#include "utils/LRUQueue.hpp"
 #include "x86.hpp"
 
 // TigerShrimp compiler.
@@ -24,7 +25,7 @@ class Compiler {
   // Handle jumps, (fallthrough to continue on trace), maybe go through trace
   // backwards.
   // Put guards, input bailout code.
-  Trace compileAndInstall(size_t, Recording);
+  Trace compileAndInstall(int, Recording);
 
  private:
   Assembler assembler;
@@ -38,8 +39,9 @@ class Compiler {
   long exitId;
   std::map<long, ProgramCounter> exitPoints;
   std::stack<Op> operandStack;
-  std::priority_queue<REG> availableRegs;
-  std::priority_queue<XREG> availableXRegs;
+  std::queue<REG> availableRegs;
+  LRUQueue registerQueue;
+  std::queue<XREG> availableXRegs;
   std::map<size_t, Op> initRecord;
   void resetCompilerState();
   void compile(RecordEntry, bool);
@@ -49,8 +51,10 @@ class Compiler {
   std::vector<Instruction> generateCondBranch(x86::Mnemonic, Op);
   std::vector<Instruction> generateArithmetic(x86::Mnemonic);
   std::vector<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
+  Op popAndFree();
   void placeInNextAvailableRegister(size_t, BaseType);
   Op getFirstAvailableReg();
+  Op spillRegister();
   Op labelAt(ProgramCounter, Value);
 };
 inline void concat(std::vector<Instruction>&, std::vector<Instruction>);

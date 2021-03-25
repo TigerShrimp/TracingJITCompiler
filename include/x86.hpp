@@ -31,25 +31,42 @@ enum Mnemonic {
 enum OpType { REGISTER, XMM_REGISTER, MEMORY, IMMEDIATE, LABEL };
 
 enum REG {
-  RAX,
-  RCX,
-  RDX,
-  RBX,
-  RSP,
-  RBP,
-  RSI,
-  RDI,
-  R8,
-  R9,
+  RDI,  // argument registers
+  RSI,  // argument registers
+  RDX,  // argument registers
+  RCX,  // argument registers
+  R8,   // argument registers
+  R9,   // argument registers
   R10,
   R11,
-  R12,
-  R13,
-  R14,
-  R15
+  RAX,  // Return register
+  RBX,  // non-volatile
+  R12,  // non-volatile
+  R13,  // non-volatile
+  R14,  // non-volatile
+  R15,  // non-volatile
+  RSP,  // Stack pointer
+  RBP,  // Frame pointer
 };
 
-enum XREG { XMM0 };
+enum XREG {
+  XMM0,
+  XMM1,
+  XMM2,
+  XMM3,
+  XMM4,
+  XMM5,
+  XMM6,
+  XMM7,
+  XMM8,
+  XMM9,
+  XMM10,
+  XMM11,
+  XMM12,
+  XMM13,
+  XMM14,
+  XMM15
+};
 
 struct Mem {
   REG reg;

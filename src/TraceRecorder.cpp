@@ -55,11 +55,12 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
       break;
     }
     case JVM::INVOKESTATIC: {
-      // Recursive function call
+      // Recursive function call not supported for tracing yet
       if (traceStart.methodIndex == inst.params[0].val.intValue) {
         recording = false;
         return false;
       }
+      break;
     }
     case JVM::ICONST_M1... JVM::ICONST_5:
     case JVM::LCONST_0... JVM::LCONST_1:
