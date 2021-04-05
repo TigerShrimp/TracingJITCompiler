@@ -1,0 +1,23 @@
+main(25):
+  0: ICONST_0 
+  1: ISTORE_1 
+  2: ICONST_0 
+  3: ISTORE_2 
+  4: ILOAD_2 
+  5: LDC 7 
+  7: IF_ICMPGE 0 26 
+  10: ILOAD_1 
+  11: LDC 8 
+  13: IF_ICMPNE 0 11 
+  16: ILOAD_1 
+  17: LDC 8 
+  19: ISUB 
+  20: ISTORE_1 
+  21: GOTO 0 6 
+  24: IINC 1 1 
+  27: IINC 2 1 
+  30: GOTO 255 230 
+  33: GETSTATIC 0 9 
+  36: ILOAD_1 
+  37: INVOKEVIRTUAL 0 15 
+  40: RETURN 
