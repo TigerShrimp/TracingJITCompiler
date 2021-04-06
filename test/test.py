@@ -1,5 +1,6 @@
 import os
 import subprocess
+inflect_exists = False
 try:
     import inflect
     inflect_exists = True
@@ -28,23 +29,17 @@ for class_file in class_files:
                           for t in tiger_shrimp_out.split('\n') if t]
 
     if(java_lines == tiger_shrimp_lines):
-        string = "Test {} passed this makes me happy".format(class_name)
         print('\033[92mTest {} passed :D \033[0m'.format(class_name))
         tests_passed += 1
     elif tiger_shrimp_err:
-        string = "Test {} failed with error: {}, this makes me sad".format(
-            class_name, tiger_shrimp_err.decode('utf-8')[:-1])
         print('\033[91mTest {} failed with error: {} :(\033[0m\n'.format(
             class_name, tiger_shrimp_err.decode('utf-8')[:-1]), end='')
     else:
-        string = "Test {} failed: \n\t Got: {}\tExpected: {}".format(
-            class_name, tiger_shrimp_out, java_out)
         print('\033[91mTest {} failed: \n\tGot: {}\tExpected: {}\033[0m'.format(
             class_name, tiger_shrimp_out, java_out), end='')
 
-    subprocess.run(['say', string, '-r', '300'])
 
-if inflect:
+if inflect_exists:
     p = inflect.engine()
     tests_passed_str = p.number_to_words(tests_passed)
     total_tests_str = p.number_to_words(total_tests)
