@@ -4,9 +4,7 @@ using namespace std;
 
 // Public functions
 
-vector<uint8_t> Assembler::assemble(vector<Instruction>& initCode,
-                                    vector<Instruction>& nativeTrace,
-                                    vector<Instruction>& bailout,
+vector<uint8_t> Assembler::assemble(list<Instruction>& nativeTrace,
                                     vector<ProgramCounter> branchTargets) {
   DEBUG_PRINT("Assemble start\n");
   asmjit::Environment env;
@@ -27,11 +25,8 @@ vector<uint8_t> Assembler::assemble(vector<Instruction>& initCode,
     DEBUG_PRINT("Label: ({},{})\n", key.methodIndex, key.instructionIndex);
   }
 
-  assemble(asmAssembler, initCode);
   DEBUG_PRINT("Assemble nativeTrace\n");
   assemble(asmAssembler, nativeTrace);
-  DEBUG_PRINT("Assemble bailout\n");
-  assemble(asmAssembler, bailout);
 
   asmjit::CodeBuffer& buffer = codeHolder.textSection()->buffer();
   vector<uint8_t> bytes(buffer.data(), buffer.data() + buffer.size());
@@ -40,7 +35,7 @@ vector<uint8_t> Assembler::assemble(vector<Instruction>& initCode,
 }
 
 void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
-                         std::vector<Instruction>& insts) {
+                         std::list<Instruction>& insts) {
   asmjit::Error err;
   for (auto inst : insts) {
     switch (inst.inst) {

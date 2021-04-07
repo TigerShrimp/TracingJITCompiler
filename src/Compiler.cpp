@@ -18,7 +18,7 @@ Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   // Code that is run before the trace starts to move variables from local
   // variable store into usable registers for trace execution
 
-  vector<Instruction> initCode;
+  list<Instruction> initCode;
   // We allocate space as if all local variables might be in memory at the same
   // time even though they might not be. This is a trade-off between memory
   // efficiency and simplicity of the code.
@@ -39,14 +39,22 @@ Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   bailoutCode.push_back({x86::LABEL, exitLabel});
   bailoutCode.push_back({x86::LEAVE});
   bailoutCode.push_back({x86::RET});
-  // Combine all branch targets into a single set.
 
+  // Combine all parts of native code to single list
+  for (auto code = initCode.rbegin(); code != initCode.rend(); code++) {
+    nativeTrace.push_front(*code);
+  }
+  for (auto code : bailoutCode) {
+    nativeTrace.push_back(code);
+  }
+
+  // Combine all branch targets into a single set.
   vector<ProgramCounter> branchTargets;
   for (auto pc : recording.innerBranchTargets) branchTargets.push_back(pc);
   for (auto pc : recording.outerBranchTargets) branchTargets.push_back(pc);
   branchTargets.push_back(exitPc);
   vector<uint8_t> assembledCode =
-      assembler.assemble(initCode, nativeTrace, bailoutCode, branchTargets);
+      assembler.assemble(nativeTrace, branchTargets);
   TracePointer ptr = memoryHandler.writeTrace(assembledCode);
   return {ptr, exitPoints, maxLocals};
 }
@@ -180,8 +188,8 @@ void Compiler::compileBailoutFor(Op label) {
   bailoutCode.push_back({x86::JMP, exitLabel});
 }
 
-vector<Instruction> Compiler::generateMov(Op dst, Op src) {
-  vector<Instruction> instructions;
+list<Instruction> Compiler::generateMov(Op dst, Op src) {
+  list<Instruction> instructions;
   if (dst == src) {
     return instructions;
   }
@@ -200,8 +208,8 @@ vector<Instruction> Compiler::generateMov(Op dst, Op src) {
   return instructions;
 }
 
-vector<Instruction> Compiler::generateVariableLoad(Op dst, int var) {
-  vector<Instruction> instructions;
+list<Instruction> Compiler::generateVariableLoad(Op dst, int var) {
+  list<Instruction> instructions;
   bool borrowsRDI = false;
   Op dstCopy = dst;
   Op rdi = {REGISTER, .reg = RDI};
@@ -220,8 +228,8 @@ vector<Instruction> Compiler::generateVariableLoad(Op dst, int var) {
   return instructions;
 }
 
-vector<Instruction> Compiler::generateVariableStore(Op src, int var) {
-  vector<Instruction> instructions;
+list<Instruction> Compiler::generateVariableStore(Op src, int var) {
+  list<Instruction> instructions;
   Op tmp;
   bool borrowsRDI = false;
   Op rdi = {REGISTER, .reg = RDI};
@@ -241,9 +249,8 @@ vector<Instruction> Compiler::generateVariableStore(Op src, int var) {
   return instructions;
 }
 
-vector<Instruction> Compiler::generateCondBranch(x86::Mnemonic instr,
-                                                 Op label) {
-  vector<Instruction> instructions;
+list<Instruction> Compiler::generateCondBranch(x86::Mnemonic instr, Op label) {
+  list<Instruction> instructions;
   Op op2 = popAndFree();
   Op op1 = popAndFree();
   if (op1.opType == REGISTER || op1.opType == MEMORY) {
@@ -257,8 +264,8 @@ vector<Instruction> Compiler::generateCondBranch(x86::Mnemonic instr,
   return instructions;
 }
 
-vector<Instruction> Compiler::generateArithmetic(x86::Mnemonic inst) {
-  vector<Instruction> instructions;
+list<Instruction> Compiler::generateArithmetic(x86::Mnemonic inst) {
+  list<Instruction> instructions;
   Op op2 = operandStack.top();
   operandStack.pop();
   Op op1 = operandStack.top();
@@ -285,6 +292,6 @@ Op Compiler::labelAt(ProgramCounter pc, Value offset) {
 }
 
 // Extend the first list with the elements of the second list.
-inline void concat(vector<Instruction>& first, vector<Instruction> second) {
+inline void concat(list<Instruction>& first, list<Instruction> second) {
   for (auto inst : second) first.push_back(inst);
 }

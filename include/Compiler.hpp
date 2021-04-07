@@ -1,5 +1,6 @@
 #ifndef COMPILER_HPP
 #define COMPILER_HPP
+#include <list>
 #include <map>
 #include <queue>
 #include <stack>
@@ -30,8 +31,8 @@ class Compiler {
  private:
   Assembler assembler;
   MemoryHandler memoryHandler;
-  std::vector<Instruction> nativeTrace;
-  std::vector<Instruction> bailoutCode;
+  std::list<Instruction> nativeTrace;
+  std::list<Instruction> bailoutCode;
   const ProgramCounter exitPc = {0, 0};
   const Op exitLabel = {LABEL, .pc = exitPc};
   long exitId;
@@ -42,16 +43,16 @@ class Compiler {
   void resetCompilerState();
   void compile(RecordEntry, bool);
   void compileBailoutFor(Op);
-  std::vector<Instruction> generateMov(Op, Op);
-  std::vector<Instruction> generateVariableLoad(Op, int);
-  std::vector<Instruction> generateVariableStore(Op, int);
-  std::vector<Instruction> generateCondBranch(x86::Mnemonic, Op);
-  std::vector<Instruction> generateArithmetic(x86::Mnemonic);
-  std::vector<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
+  std::list<Instruction> generateMov(Op, Op);
+  std::list<Instruction> generateVariableLoad(Op, int);
+  std::list<Instruction> generateVariableStore(Op, int);
+  std::list<Instruction> generateCondBranch(x86::Mnemonic, Op);
+  std::list<Instruction> generateArithmetic(x86::Mnemonic);
+  std::list<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
   Op getFirstAvailableReg();
   Op popAndFree();
   Op labelAt(ProgramCounter, Value);
 };
-inline void concat(std::vector<Instruction>&, std::vector<Instruction>);
+inline void concat(std::list<Instruction>&, std::list<Instruction>);
 
 #endif  // COMPILER_HPP

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <list>
 #include <map>
 #include <regex>
 #include <set>
@@ -33,13 +34,11 @@ class Assembler {
   // Assembles lines of x86_64 instruction strings
   std::vector<uint8_t> assemble(std::vector<std::string>&);
   // Assembles a vector of x86 Instructions defined in x86.hpp
-  std::vector<uint8_t> assemble(std::vector<Instruction>&,
-                                std::vector<Instruction>&,
-                                std::vector<Instruction>&,
+  std::vector<uint8_t> assemble(std::list<Instruction>&,
                                 std::vector<ProgramCounter>);
 
  private:
-  void assemble(asmjit::x86::Assembler&, std::vector<Instruction>&);
+  void assemble(asmjit::x86::Assembler&, std::list<Instruction>&);
   asmjit::Operand convert(Op);
   std::map<ProgramCounter, asmjit::Label> labels;
   ArgumentType getArgumentType(std::string);
