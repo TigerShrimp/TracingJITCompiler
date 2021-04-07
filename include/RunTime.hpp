@@ -1,8 +1,12 @@
 #ifndef RUNTIME_HPP
 #define RUNTIME_HPP
+#include <fmt/core.h>
+
 #include <map>
 #include <stack>
+#include <string>
 #include <vector>
+
 
 #include "ByteCodes.hpp"
 #include "Compiler.hpp"
@@ -29,6 +33,8 @@ class RunTime {
 
   size_t findIndexOfMain(Program*);
   void initProgramState(Program*);
+  std::map<std::string, std::map<size_t, ByteCodeInstruction>>
+  constructProgramString(Program*);
 };
 
 #endif  // RUNTIME_HPP

@@ -68,3 +68,22 @@ size_t RunTime::findIndexOfMain(Program *program) {
   cerr << "Class file containsn't a main function" << endl;
   throw;
 }
+
+map<string, map<size_t, ByteCodeInstruction>> RunTime::constructProgramString(
+    Program *program) {
+  map<string, map<size_t, ByteCodeInstruction>> methods;
+  for (auto method : program->methods) {
+    string key = fmt::format(
+        "{} ({})", ((ConstantUtf8 *)program->constantPool[method.first])->bytes,
+        method.first);
+    map<size_t, ByteCodeInstruction> insts;
+    program->states.push(new State{0, method.first});
+    while (program->states.top()->pc.instructionIndex <
+           method.second.code.size()) {
+      size_t pc = program->states.top()->pc.instructionIndex;
+      insts[pc] = interpreter.prepareNext(program);
+    }
+    methods[key] = insts;
+  }
+  return methods;
+}

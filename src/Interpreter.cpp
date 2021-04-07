@@ -393,7 +393,11 @@ ByteCodeInstruction Interpreter::prepareNext(Program *program) {
       params.push_back(Value(findNameIndex(program, methodRefIndex)));
       break;
     }
-    // IINC reads two parameters but does not combine them into a single value.
+    // These mnemonics reads two parameters but does not combine them into a
+    // single value.
+    case INVOKESPECIAL:
+    case GETSTATIC:
+    case INVOKEVIRTUAL:
     case IINC: {
       params.push_back(Value(program->readNext()));
       params.push_back(Value(program->readNext()));
