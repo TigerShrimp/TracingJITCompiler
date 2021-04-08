@@ -36,7 +36,7 @@ TODO:
 - ./src/Compiler.cpp:26:  // TODO: change explicit 8 to variable "sizeOfRegister".
 - ./src/Compiler.cpp:67:  // TODO: Maybe include RDI and RAX
 - ./src/Compiler.cpp:71:  // TODO: fill avail regs and xregs with all registers
-- ./src/Interpreter.cpp:370:      // TODO: Make Long/Double constants more general
+- ./src/Interpreter.cpp:368:      // TODO: Make Long/Double constants more general
 - ./src/RunTime.cpp:8:  // TODO: Either move this functionality to Compiler or remove
 - ./src/RunTime.cpp:67:  // TODO: Standardize exception handing.
 

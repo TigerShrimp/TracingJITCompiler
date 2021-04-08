@@ -49,4 +49,4 @@ else:
 
 print('Tests: {}/{} passed'.format(tests_passed, total_tests))
 subprocess.run(['say', 'You passed {} out of {} tests, buddy'.format(
-    tests_passed_str, total_tests_str), '-v', 'Daniel', '-r', '-300'])
+    tests_passed_str, total_tests_str), '-v', 'Alva'])

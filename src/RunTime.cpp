@@ -84,6 +84,7 @@ map<string, map<size_t, ByteCodeInstruction>> RunTime::constructProgramString(
       insts[pc] = interpreter.prepareNext(program);
     }
     methods[key] = insts;
+    program->states.pop();
   }
   return methods;
 }

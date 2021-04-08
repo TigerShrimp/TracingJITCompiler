@@ -214,7 +214,6 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       // Is currently only used when System.out.println is called
       Value val = program->pop();
       cout << val.toString() << endl;
-      program->jump(2);
       break;
     }
     case INVOKESTATIC: {
@@ -337,7 +336,6 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       // print-function. In reality it should read parameters to get index of
       // what should be passed into the function but at the moment INVOKEVIRTUAL
       // takes care of it.
-      program->jump(2);
       break;
     }
     default: {
