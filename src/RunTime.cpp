@@ -19,10 +19,10 @@ void RunTime::run(Program *program) {
   while (!program->states.empty()) {
     DEBUG_PRINT("States: {}\n", program->states.size());
     State *state = program->states.top();
-    if (traceHandler.hasTrace(state->pc)) {
+    ProgramCounter pc = state->pc;
+    if (traceHandler.hasTrace(pc)) {
       traceHandler.runTrace(state);
     } else {
-      ProgramCounter pc = state->pc;
       ByteCodeInstruction inst = interpreter.prepareNext(program);
       profiler.countVisitFor(pc);
       if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
