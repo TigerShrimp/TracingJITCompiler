@@ -36,6 +36,7 @@ Value operator+(const Value&, const Value&);
 Value operator-(const Value&, const Value&);
 Value operator*(const Value&, const Value&);
 Value operator/(const Value&, const Value&);
+Value operator%(const Value&, const Value&);
 bool operator<(const Value&, const Value&);
 
 struct ProgramCounter {

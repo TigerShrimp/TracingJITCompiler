@@ -130,6 +130,42 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
 
       break;
     }
+    case JVM::IREM: {
+      Op denomOp = operandStack.top();
+      operandStack.pop();
+      Op nomOp = operandStack.top();
+      operandStack.pop();
+      // Op opDst;
+      // if (op1.opType == REGISTER) {
+      //   opDst = op1;
+      // } else {
+      //   opDst = getFirstAvailableReg();
+      //   concat(instructions, generateMov(opDst, op1));
+      // }
+      // if (op2.opType == REGISTER) {
+      //   availableRegs.push(op2.reg);
+      // }
+      Op rdx = {REGISTER, .reg = RDX};
+      bool toFree = false;
+      Op opDst;
+      if (denomOp.opType == REGISTER && denomOp.reg == RDX ||
+          denomOp.opType == IMMEDIATE) {
+        opDst = getFirstAvailableReg();
+        concat(nativeTrace, generateMov(opDst, denomOp));
+        // TODO: not correct, only when denomOP is in RDX before modulo should
+        // we do this.
+        toFree = true;
+      } else {
+        opDst = denomOp;
+      }
+      nativeTrace.push_back({x86::PUSH, rdx});
+      nativeTrace.push_back({x86::MOV, rdx, {IMMEDIATE, .val = Value(0)}});
+      nativeTrace.push_back({x86::IDIV, opDst});
+      concat(nativeTrace, generateMov(opDst, rdx));
+      nativeTrace.push_back({x86::POP, rdx});
+      if (toFree) availableRegs.push(RDX);
+      break;
+    }
     case JVM::IINC: {
       int var = entry.inst.params[0].val.intValue;
       Op dst = getFirstAvailableReg();

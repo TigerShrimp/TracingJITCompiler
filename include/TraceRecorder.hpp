@@ -1,6 +1,7 @@
 #ifndef TRACERECORDER_HPP
 #define TRACERECORDER_HPP
 #include <set>
+#include <sstream>
 #include <vector>
 
 #include "Definitions.hpp"
@@ -35,6 +36,7 @@ class TraceRecorder {
   void branchFlip(ProgramCounter);
   const Value extractParam(const JVM::Mnemonic);
   const JVM::Mnemonic extractMnemonic(const JVM::Mnemonic);
+  std::string constructDebugString();
 };
 
 #endif  // TRACERECORDER_HPP

@@ -12,6 +12,7 @@ enum Mnemonic {
   LEAVE,
   RET,
   IMUL,
+  IDIV,
   PUSH,
   POP,
   INC,

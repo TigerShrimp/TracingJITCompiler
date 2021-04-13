@@ -157,6 +157,20 @@ Value operator/(const Value &lhs, const Value &rhs) {
       return NULL;
   }
 }
+Value operator%(const Value &lhs, const Value &rhs) {
+  switch (lhs.type.type) {
+    case Int:
+      return Value(lhs.val.intValue % rhs.val.intValue);
+    case Long:
+      return Value(lhs.val.longValue % rhs.val.longValue);
+    case Float:
+      return Value(remainder(lhs.val.floatValue, rhs.val.floatValue));
+    case Double:
+      return Value(remainder(lhs.val.doubleValue, rhs.val.doubleValue));
+    default:
+      return NULL;
+  }
+}
 bool operator<(const Value &lhs, const Value &rhs) {
   if (lhs.type.type != rhs.type.type) return lhs.type.type < rhs.type.type;
   switch (lhs.type.type) {

@@ -9,7 +9,10 @@ bool TraceHandler::hasTrace(ProgramCounter pc) {
   return has;
 }
 
-void TraceHandler::runTrace(State* state) {
+// Returns the pc at which the interpreter should take back control
+// Since only side exits and not the "default" exit will be hot we can
+// count each time we exit.
+ProgramCounter TraceHandler::runTrace(State* state) {
   DEBUG_PRINT("Will run trace\n");
   Trace trace = traces[state->pc];
   void** args = (void**)malloc(sizeof(void*) * trace.maxLocals);
@@ -25,7 +28,7 @@ void TraceHandler::runTrace(State* state) {
               trace.exitPoints[exitPoint].methodIndex,
               trace.exitPoints[exitPoint].instructionIndex);
   free(args);
-  state->pc = trace.exitPoints[exitPoint];
+  return trace.exitPoints[exitPoint];
 }
 
 void TraceHandler::insertTrace(ProgramCounter pc, Trace trace) {

@@ -21,7 +21,15 @@ void RunTime::run(Program *program) {
     State *state = program->states.top();
     ProgramCounter pc = state->pc;
     if (traceHandler.hasTrace(pc)) {
-      traceHandler.runTrace(state);
+      ProgramCounter exitPc = traceHandler.runTrace(state);
+      profiler.countSideExitFor(exitPc);
+      if (profiler.isHot(exitPc)) {
+        // pc is the program counter before entering the trace, i.e. the
+        // header of the loop where the trace starts.
+        ProgramCounter loopHeaderPC = pc;
+        traceRecorder.initRecording(loopHeaderPC);
+      }
+      state->pc = exitPc;
     } else {
       ByteCodeInstruction inst = interpreter.prepareNext(program);
       profiler.countVisitFor(pc);

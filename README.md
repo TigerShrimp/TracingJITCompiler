@@ -31,13 +31,14 @@ TODO:
 
 - ./include/x86.hpp:5:// TODO change name to Mnemonic
 - ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
-- ./include/Program.hpp:68:  // TODO: Remove these attributes
+- ./include/Program.hpp:69:  // TODO: Remove these attributes
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Compiler.cpp:26:  // TODO: change explicit 8 to variable "sizeOfRegister".
 - ./src/Compiler.cpp:67:  // TODO: Maybe include RDI and RAX
 - ./src/Compiler.cpp:71:  // TODO: fill avail regs and xregs with all registers
-- ./src/Interpreter.cpp:368:      // TODO: Make Long/Double constants more general
+- ./src/Compiler.cpp:155:        // TODO: not correct, only when denomOP is in RDX before modulo should
+- ./src/Interpreter.cpp:384:      // TODO: Make Long/Double constants more general
 - ./src/RunTime.cpp:8:  // TODO: Either move this functionality to Compiler or remove
-- ./src/RunTime.cpp:67:  // TODO: Standardize exception handing.
+- ./src/RunTime.cpp:75:  // TODO: Standardize exception handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

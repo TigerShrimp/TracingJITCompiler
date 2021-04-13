@@ -8,6 +8,11 @@ void Profiler::countVisitFor(ProgramCounter pc) {
   lastPc = pc;
 }
 
+void Profiler::countSideExitFor(ProgramCounter pc) {
+  loopRecord[pc] += 1;
+  lastPc = pc;
+}
+
 bool Profiler::isHot(ProgramCounter pc) {
   return loopRecord.contains(pc) && loopRecord[pc] > hotThreshold;
 }

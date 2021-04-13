@@ -19,19 +19,7 @@ Recording TraceRecorder::getRecording() {
 bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
   if (pc == traceStart && recordedTrace.size() > 0) {
     recording = false;
-#ifdef DEBUG_PRINT_ON
-    DEBUG_PRINT(" ---- Trace recorded: ({},{}) ----\n", traceStart.methodIndex,
-                traceStart.instructionIndex);
-    for (auto record : recordedTrace) {
-      ByteCodeInstruction bcInst = record.inst;
-      DEBUG_PRINT("{} ", JVM::byteCodeNames.at(bcInst.mnemonic));
-      for (auto val : bcInst.params) {
-        DEBUG_PRINT("{} ", val.toString());
-      }
-      DEBUG_PRINT("\n")
-    }
-    DEBUG_PRINT(" ---- ---------------------- ----\n")
-#endif
+    DEBUG_PRINT(constructDebugString());
     return true;
   }
   if (lastInstructionWasBranch) branchFlip(pc);
@@ -78,6 +66,22 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
   return false;
 }
 
+std::string TraceRecorder::constructDebugString() {
+  std::stringstream ss;
+
+  ss << " ---- Trace recorded: (" << traceStart.methodIndex << ", "
+     << traceStart.instructionIndex << ") ----\n";
+  for (auto record : recordedTrace) {
+    ByteCodeInstruction bcInst = record.inst;
+    ss << JVM::byteCodeNames.at(bcInst.mnemonic) << " ";
+    for (auto val : bcInst.params) {
+      ss << val.toString() << " ";
+    }
+    ss << std::endl;
+  }
+  ss << " ---- ---------------------- ----\n";
+  return ss.str();
+}
 void TraceRecorder::branchFlip(ProgramCounter nextPc) {
   lastInstructionWasBranch = false;
   RecordEntry branchEntry = recordedTrace[recordedTrace.size() - 1];

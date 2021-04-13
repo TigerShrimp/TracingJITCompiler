@@ -161,6 +161,12 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       break;
     }
     // Control flow
+    case IFNE: {
+      int value = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (value != 0) program->jump(offset, 3);
+      break;
+    }
     case IFGT: {
       int value = program->pop().val.intValue;
       int offset = inst.params[0].val.intValue;
@@ -256,6 +262,15 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       Value rhs = program->pop();
       Value lhs = program->pop();
       program->push(lhs / rhs);
+      break;
+    }
+    case IREM:
+    case LREM:
+    case FREM:
+    case DREM: {
+      Value rhs = program->pop();
+      Value lhs = program->pop();
+      program->push(lhs % rhs);
       break;
     }
     case IINC: {
@@ -356,6 +371,7 @@ ByteCodeInstruction Interpreter::prepareNext(Program *program) {
     // into a single integer.
     case SIPUSH:
     case IFGT:
+    case IFNE:
     case IF_ICMPGE:
     case IF_ICMPGT:
     case IF_ICMPNE:
