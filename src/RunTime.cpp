@@ -21,22 +21,31 @@ void RunTime::run(Program *program) {
     DEBUG_PRINT("States: {}\n", program->states.size());
     State *state = program->states.top();
     ProgramCounter pc = state->pc;
+    if (traceRecorder.isRecording() && traceRecorder.recordingDone(pc)) {
+      Recording recording = traceRecorder.getRecording();
+      Trace trace = compiler.compileAndInstall(
+          program->methods[pc.methodIndex].maxLocals, recording);
+      // COMPILING_DONE
+      traceHandler.insertTrace(recording.startPc, trace);
+    }
     if (traceHandler.hasTrace(pc)) {
-      // NATIVE_TRACE
-      ProgramCounter exitPc = traceHandler.runTrace(state);
+      ProgramCounter exitPc;
+      if (traceRecorder.isRecording())
+        // NATIVE_TRACE
+        exitPc = traceHandler.runTrace(state);
       profiler.countSideExitFor(exitPc);
       if (profiler.isHot(exitPc)) {
         // pc is the program counter before entering the trace, i.e. the
         // header of the loop where the trace starts.
-        ProgramCounter loopHeaderPc = pc;
+        ProgramCounter loopHeaderPc;
         // INIT_RECORDING
-        traceRecorder.initRecording(loopHeaderPc);
+        traceRecorder.initRecording(loopHeaderPc = pc, exitPc);
       }
       state->pc = exitPc;
     } else {
       ByteCodeInstruction inst = interpreter.prepareNext(program);
       profiler.countVisitFor(pc);
-      if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
+      if (profiler.isHot(pc)) {
         DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
                     state->pc.methodIndex, state->pc.instructionIndex,
                     state->stack.size());
@@ -44,16 +53,7 @@ void RunTime::run(Program *program) {
         traceRecorder.initRecording(pc);
       }
       if (traceRecorder.isRecording()) {
-        bool recordingDone = traceRecorder.record(pc, inst);
-        if (recordingDone) {
-          Recording recording = traceRecorder.getRecording();
-          Trace trace = compiler.compileAndInstall(
-              program->methods[pc.methodIndex].maxLocals, recording);
-          // COMPILING_DONE
-          traceHandler.insertTrace(pc, trace);
-          state->pc = pc;
-          continue;
-        }
+        traceRecorder.record(pc, inst);
       }
       // INTERPRETING
       interpreter.evalInstruction(program, inst);

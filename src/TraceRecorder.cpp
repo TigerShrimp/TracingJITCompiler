@@ -3,17 +3,25 @@
 using namespace std;
 bool TraceRecorder::isRecording() { return recording; }
 
-void TraceRecorder::initRecording(ProgramCounter pc) {
+bool TraceRecorder::recordingDone(ProgramCounter pc) {
+  return pc == loopHeader;
+}
+
+void TraceRecorder::initRecording(ProgramCounter loopHead,
+                                  ProgramCounter start) {
   recording = true;
   lastInstructionWasBranch = false;
-  traceStart = pc;
+  traceStart = start;
+  loopHeader = loopHead;
   recordedTrace.clear();
   innerBranchTargets.clear();
   outerBranchTargets.clear();
 }
 
+void TraceRecorder::initRecording(ProgramCounter pc) { initRecording(pc, pc); }
+
 Recording TraceRecorder::getRecording() {
-  return {recordedTrace, innerBranchTargets, outerBranchTargets};
+  return {traceStart, recordedTrace, innerBranchTargets, outerBranchTargets};
 }
 
 bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
