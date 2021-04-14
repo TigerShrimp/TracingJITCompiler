@@ -65,8 +65,8 @@ void Compiler::resetCompilerState() {
   exitPoints.clear();
   exitId = 0;
   // TODO: Maybe include RDI and RAX
-  static const vector<REG> regs = {RSI, RDX, RCX, R8,  R9,  R10,
-                                   R11, RBX, R12, R13, R14, R15};
+  static const vector<REG> regs = {RSI, RCX, R8,  R9,  R10, R11,
+                                   RBX, R12, R13, R14, R15};
   while (!operandStack.empty()) operandStack.pop();
   // TODO: fill avail regs and xregs with all registers
   while (!availableRegs.empty()) availableRegs.pop();
@@ -116,6 +116,14 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
                                 labelAt(entry.pc, entry.inst.params[0])));
       break;
     }
+    case JVM::IFEQ: {
+      Op op = popAndFree();
+      nativeTrace.push_back({x86::CMP, op, {IMMEDIATE, .val = Value(0)}});
+      Op label = labelAt(entry.pc, entry.inst.params[0]);
+      nativeTrace.push_back({x86::JE, label});
+      compileBailoutFor(label);
+      break;
+    }
     case JVM::GOTO:
       nativeTrace.push_back(
           {x86::JMP, labelAt(entry.pc, entry.inst.params[0])});
@@ -133,37 +141,20 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
     case JVM::IREM: {
       Op denomOp = operandStack.top();
       operandStack.pop();
-      Op nomOp = operandStack.top();
-      operandStack.pop();
-      // Op opDst;
-      // if (op1.opType == REGISTER) {
-      //   opDst = op1;
-      // } else {
-      //   opDst = getFirstAvailableReg();
-      //   concat(instructions, generateMov(opDst, op1));
-      // }
-      // if (op2.opType == REGISTER) {
-      //   availableRegs.push(op2.reg);
-      // }
-      Op rdx = {REGISTER, .reg = RDX};
-      bool toFree = false;
+      Op nomOp = popAndFree();
       Op opDst;
-      if (denomOp.opType == REGISTER && denomOp.reg == RDX ||
-          denomOp.opType == IMMEDIATE) {
+      concat(nativeTrace, generateMov({REGISTER, .reg = RAX}, nomOp));
+      if (denomOp.opType == REGISTER) {
+        opDst = denomOp;
+      } else {
         opDst = getFirstAvailableReg();
         concat(nativeTrace, generateMov(opDst, denomOp));
-        // TODO: not correct, only when denomOP is in RDX before modulo should
-        // we do this.
-        toFree = true;
-      } else {
-        opDst = denomOp;
       }
-      nativeTrace.push_back({x86::PUSH, rdx});
+      Op rdx = {REGISTER, .reg = RDX};
       nativeTrace.push_back({x86::MOV, rdx, {IMMEDIATE, .val = Value(0)}});
       nativeTrace.push_back({x86::IDIV, opDst});
       concat(nativeTrace, generateMov(opDst, rdx));
-      nativeTrace.push_back({x86::POP, rdx});
-      if (toFree) availableRegs.push(RDX);
+      operandStack.push(opDst);
       break;
     }
     case JVM::IINC: {

@@ -13,6 +13,7 @@ RunTime::RunTime(vector<uint8_t> initialTrace, int method, int start, int end)
 bool recordingTrace() { return false; }
 
 void RunTime::run(Program *program) {
+  // BEFORE_RUN
   initProgramState(program);
   // Returning from main means the program stack will be
   // empty and the program will terminate.
@@ -21,13 +22,15 @@ void RunTime::run(Program *program) {
     State *state = program->states.top();
     ProgramCounter pc = state->pc;
     if (traceHandler.hasTrace(pc)) {
+      // NATIVE_TRACE
       ProgramCounter exitPc = traceHandler.runTrace(state);
       profiler.countSideExitFor(exitPc);
       if (profiler.isHot(exitPc)) {
         // pc is the program counter before entering the trace, i.e. the
         // header of the loop where the trace starts.
-        ProgramCounter loopHeaderPC = pc;
-        traceRecorder.initRecording(loopHeaderPC);
+        ProgramCounter loopHeaderPc = pc;
+        // INIT_RECORDING
+        traceRecorder.initRecording(loopHeaderPc);
       }
       state->pc = exitPc;
     } else {
@@ -37,6 +40,7 @@ void RunTime::run(Program *program) {
         DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
                     state->pc.methodIndex, state->pc.instructionIndex,
                     state->stack.size());
+        // INIT_RECORDING
         traceRecorder.initRecording(pc);
       }
       if (traceRecorder.isRecording()) {
@@ -45,11 +49,13 @@ void RunTime::run(Program *program) {
           Recording recording = traceRecorder.getRecording();
           Trace trace = compiler.compileAndInstall(
               program->methods[pc.methodIndex].maxLocals, recording);
+          // COMPILING_DONE
           traceHandler.insertTrace(pc, trace);
           state->pc = pc;
           continue;
         }
       }
+      // INTERPRETING
       interpreter.evalInstruction(program, inst);
     }
   }

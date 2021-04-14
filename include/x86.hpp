@@ -23,6 +23,7 @@ enum Mnemonic {
   CMP,
   JGE,
   JE,
+  JNE,
   JLE,
   JMP,
   // TigerShrimp specific

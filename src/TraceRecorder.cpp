@@ -35,6 +35,8 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
       }
       break;
     }
+    case JVM::IFNE:
+    case JVM::IFEQ:
     case JVM::IFGT:
     case JVM::IF_ICMPGE:
     case JVM::IF_ICMPGT:
@@ -101,6 +103,9 @@ void TraceRecorder::branchFlip(ProgramCounter nextPc) {
     JVM::Mnemonic flipped =
         recordedTrace[recordedTrace.size() - 1].inst.mnemonic;
     switch (branchEntry.inst.mnemonic) {
+      case JVM::IFNE:
+        flipped = JVM::IFEQ;
+        break;
       case JVM::IFGT:
         flipped = JVM::IFLE;
         break;
@@ -114,6 +119,8 @@ void TraceRecorder::branchFlip(ProgramCounter nextPc) {
         flipped = JVM::IF_ICMPEQ;
         break;
       default:
+        cerr << "Flipped branch not implemented" << endl;
+        throw;
         break;
     }
     recordedTrace[recordedTrace.size() - 1].inst.mnemonic = flipped;

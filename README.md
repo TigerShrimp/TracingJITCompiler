@@ -36,9 +36,8 @@ TODO:
 - ./src/Compiler.cpp:26:  // TODO: change explicit 8 to variable "sizeOfRegister".
 - ./src/Compiler.cpp:67:  // TODO: Maybe include RDI and RAX
 - ./src/Compiler.cpp:71:  // TODO: fill avail regs and xregs with all registers
-- ./src/Compiler.cpp:155:        // TODO: not correct, only when denomOP is in RDX before modulo should
 - ./src/Interpreter.cpp:384:      // TODO: Make Long/Double constants more general
 - ./src/RunTime.cpp:8:  // TODO: Either move this functionality to Compiler or remove
-- ./src/RunTime.cpp:75:  // TODO: Standardize exception handing.
+- ./src/RunTime.cpp:81:  // TODO: Standardize exception handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

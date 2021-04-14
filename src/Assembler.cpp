@@ -38,6 +38,11 @@ void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
                          std::list<Instruction>& insts) {
   asmjit::Error err;
   for (auto inst : insts) {
+#ifdef DEBUG_PRINT_ON
+    if (!lookupX86Mnemonics.contains(inst.inst) && inst.inst != x86::LABEL) {
+      DEBUG_PRINT("Inst {} not found\n", inst.inst);
+    }
+#endif
     switch (inst.inst) {
       case x86::LABEL:
         DEBUG_PRINT("Binding label ({},{})\n", inst.op1.pc.methodIndex,
@@ -51,11 +56,13 @@ void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
         break;
       }
       // Mnemonics that have 1 operand
+      case x86::IDIV:
       case x86::PUSH:
       case x86::POP:
       case x86::INC:
       case x86::JMP:
       case x86::JE:
+      case x86::JNE:
       case x86::JGE: {
         asmjit::Operand op = convert(inst.op1);
         err = asmAssembler.emit(lookupX86Mnemonics.at(inst.inst), op);

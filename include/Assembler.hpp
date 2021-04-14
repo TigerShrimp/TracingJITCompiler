@@ -1,6 +1,7 @@
 #ifndef ASSEMBLER_HPP
 #define ASSEMBLER_HPP
 #include <asmjit/x86.h>
+#include <fmt/core.h>
 
 #include <algorithm>
 #include <iostream>

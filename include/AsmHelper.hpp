@@ -59,6 +59,7 @@ const x86MnemMap lookupX86Mnemonics = {
     {x86::LEAVE, asmjit::x86::Inst::kIdLeave},
     {x86::RET, asmjit::x86::Inst::kIdRet},
     {x86::IMUL, asmjit::x86::Inst::kIdImul},
+    {x86::IDIV, asmjit::x86::Inst::kIdIdiv},
     {x86::PUSH, asmjit::x86::Inst::kIdPush},
     {x86::POP, asmjit::x86::Inst::kIdPop},
     {x86::INC, asmjit::x86::Inst::kIdInc},
@@ -70,6 +71,7 @@ const x86MnemMap lookupX86Mnemonics = {
     {x86::JMP, asmjit::x86::Inst::kIdJmp},
     {x86::JGE, asmjit::x86::Inst::kIdJge},
     {x86::JE, asmjit::x86::Inst::kIdJe},
-    {x86::JLE, asmjit::x86::Inst::kIdJle}};
+    {x86::JLE, asmjit::x86::Inst::kIdJle},
+    {x86::JNE, asmjit::x86::Inst::kIdJne}};
 
 #endif  // ASM_HELPER_HPP
