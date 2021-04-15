@@ -27,7 +27,7 @@ class TraceRecorder {
   void initRecording(ProgramCounter);
   void initRecording(ProgramCounter, ProgramCounter);
   Recording getRecording();
-  bool record(ProgramCounter, ByteCodeInstruction);
+  void record(ProgramCounter, ByteCodeInstruction);
 
  private:
   ProgramCounter traceStart;

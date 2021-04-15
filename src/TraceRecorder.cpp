@@ -4,7 +4,23 @@ using namespace std;
 bool TraceRecorder::isRecording() { return recording; }
 
 bool TraceRecorder::recordingDone(ProgramCounter pc) {
-  return pc == loopHeader;
+  if (recordedTrace.size() == 0) return false;
+  // TODO: Maybe try handling this in a more pretty way
+  RecordEntry lastEntry = recordedTrace[recordedTrace.size() - 1];
+  switch (lastEntry.inst.mnemonic) {
+    case JVM::RETURN:
+    case JVM::IRETURN:
+    case JVM::LRETURN:
+    case JVM::FRETURN:
+    case JVM::DRETURN:
+      if (pc.methodIndex == lastEntry.pc.methodIndex) {
+        DEBUG_PRINT("Discovered recursive return -- ABORT recording\n")
+        recording = false;
+        return false;
+      }
+    default:
+      return pc == loopHeader;
+  }
 }
 
 void TraceRecorder::initRecording(ProgramCounter loopHead,
@@ -21,21 +37,18 @@ void TraceRecorder::initRecording(ProgramCounter loopHead,
 void TraceRecorder::initRecording(ProgramCounter pc) { initRecording(pc, pc); }
 
 Recording TraceRecorder::getRecording() {
+  recording = false;
+  DEBUG_PRINT(constructDebugString());
   return {traceStart, recordedTrace, innerBranchTargets, outerBranchTargets};
 }
 
-bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
-  if (pc == traceStart && recordedTrace.size() > 0) {
-    recording = false;
-    DEBUG_PRINT(constructDebugString());
-    return true;
-  }
+void TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
   if (lastInstructionWasBranch) branchFlip(pc);
   switch (inst.mnemonic) {
     case JVM::GOTO: {
       int offset = inst.params[0].val.intValue;
       if (offset > 0) {  // Unconditional forward branch -- omit
-        return false;
+        return;
       } else {
         ProgramCounter branchTarget = pc;
         branchTarget.instructionIndex += offset;
@@ -56,7 +69,8 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
       // Recursive function call not supported for tracing yet
       if (traceStart.methodIndex == inst.params[0].val.intValue) {
         recording = false;
-        return false;
+        DEBUG_PRINT("Discovered recursive call -- ABORT recording\n")
+        return;
       }
       break;
     }
@@ -73,7 +87,6 @@ bool TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
       break;
   }
   recordedTrace.push_back({pc, inst});
-  return false;
 }
 
 std::string TraceRecorder::constructDebugString() {

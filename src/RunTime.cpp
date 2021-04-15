@@ -18,10 +18,12 @@ void RunTime::run(Program *program) {
   // Returning from main means the program stack will be
   // empty and the program will terminate.
   while (!program->states.empty()) {
-    DEBUG_PRINT("States: {}\n", program->states.size());
+    DEBUG_PRINT("States: {}, recording: {}\n", program->states.size(),
+                traceRecorder.isRecording());
     State *state = program->states.top();
     ProgramCounter pc = state->pc;
     if (traceRecorder.isRecording() && traceRecorder.recordingDone(pc)) {
+      DEBUG_PRINT("Recording done -- COMPILING\n")
       Recording recording = traceRecorder.getRecording();
       Trace trace = compiler.compileAndInstall(
           program->methods[pc.methodIndex].maxLocals, recording);
@@ -30,9 +32,8 @@ void RunTime::run(Program *program) {
     }
     if (traceHandler.hasTrace(pc)) {
       ProgramCounter exitPc;
-      if (traceRecorder.isRecording())
-        // NATIVE_TRACE
-        exitPc = traceHandler.runTrace(state);
+      // NATIVE_TRACE
+      exitPc = traceHandler.runTrace(state);
       profiler.countSideExitFor(exitPc);
       if (profiler.isHot(exitPc)) {
         // pc is the program counter before entering the trace, i.e. the
@@ -40,15 +41,16 @@ void RunTime::run(Program *program) {
         ProgramCounter loopHeaderPc;
         // INIT_RECORDING
         traceRecorder.initRecording(loopHeaderPc = pc, exitPc);
+        DEBUG_PRINT("\tHot side exit found ({},{})\n", exitPc.methodIndex,
+                    exitPc.instructionIndex);
       }
       state->pc = exitPc;
     } else {
       ByteCodeInstruction inst = interpreter.prepareNext(program);
       profiler.countVisitFor(pc);
-      if (profiler.isHot(pc)) {
-        DEBUG_PRINT("Hot loop found ({},{}) stack size: {}\n",
-                    state->pc.methodIndex, state->pc.instructionIndex,
-                    state->stack.size());
+      if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
+        DEBUG_PRINT("\tHot loop found ({},{})\n", pc.methodIndex,
+                    pc.instructionIndex);
         // INIT_RECORDING
         traceRecorder.initRecording(pc);
       }
