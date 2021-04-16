@@ -26,6 +26,7 @@ enum Mnemonic {
   JNE,
   JLE,
   JMP,
+  CALL,
   // TigerShrimp specific
   LABEL
 };

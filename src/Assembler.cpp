@@ -57,6 +57,7 @@ void Assembler::assemble(asmjit::x86::Assembler& asmAssembler,
       }
       // Mnemonics that have 1 operand
       case x86::IDIV:
+      case x86::CALL:
       case x86::PUSH:
       case x86::POP:
       case x86::INC:

@@ -10,7 +10,7 @@ except ImportError as e:
 
 os.chdir('test/')
 class_files = os.listdir()
-class_files = [c for c in class_files if c.endswith('class')]
+class_files = sorted([c for c in class_files if c.endswith('class')])
 total_tests = len(class_files)
 
 

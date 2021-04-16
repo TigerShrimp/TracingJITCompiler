@@ -7,11 +7,11 @@ Compiler::~Compiler() { memoryHandler.freeTraces(); }
 Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
-
+  DEBUG_PRINT("Inner branchTargets: {}\n", recording.innerBranchTargets.size());
   DEBUG_PRINT("Compiling trace starting\n");
   for (auto entry : recording.recordedTrace) {
     DEBUG_PRINT("Compiling {}\n", JVM::byteCodeNames.at(entry.inst.mnemonic));
-    compile(entry, recording.innerBranchTargets.contains(entry.pc));
+    compile(entry, recording.innerBranchTargets);
   }
 
   DEBUG_PRINT("Compiling init starting\n");
@@ -24,20 +24,28 @@ Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   // efficiency and simplicity of the code.
 
   // TODO: change explicit 8 to variable "sizeOfRegister".
-  initCode.push_back({x86::ENTER,
-                      {IMMEDIATE, .val = Value(8 * maxLocals)},
-                      {IMMEDIATE, .val = Value(0)}});
+  initCode.push_back(
+      {x86::ENTER, {IMMEDIATE, .val = Value(0)}, {IMMEDIATE, .val = Value(0)}});
+
+  Op rdi = {REGISTER, .reg = RDI};
+  Op rsi = {REGISTER, .reg = RSI};
+  Op rax = {REGISTER, .reg = RAX};
+  Op rdiPtr = {MEMORY, .mem = {RDI, 0}};
+  initCode.push_back({x86::PUSH, rdi});
+  initCode.push_back({x86::PUSH, rsi});
+  initCode.push_back({x86::MOV, rdi, rdiPtr});
 
   DEBUG_PRINT("Compiling bailout starting\n");
   // Code run after trace is finished, it is the same for default exit at the
   // end of the trace and for side exits. It writes the values back into the
-  // local variable store, all values are written to and from the trace even if
-  // they are not used, it is simpler this way.
-  Op rdi = {REGISTER, .reg = RDI};
-  Op rdiPtr = {MEMORY, .mem = {RDI, 0}};
+  // local variable store, all values are written to and from the trace even
+  // if they are not used, it is simpler this way.
 
   bailoutCode.push_back({x86::LABEL, exitLabel});
+  bailoutCode.push_back({x86::POP, rax});
+  bailoutCode.push_back({x86::POP, rdi});
   bailoutCode.push_back({x86::LEAVE});
+  bailoutCode.push_back({x86::JMP, rax});
   bailoutCode.push_back({x86::RET});
 
   // Combine all parts of native code to single list
@@ -63,7 +71,6 @@ void Compiler::resetCompilerState() {
   nativeTrace.clear();
   bailoutCode.clear();
   exitPoints.clear();
-  exitId = 0;
   // TODO: Maybe include RDI and RAX
   static const vector<REG> regs = {RSI, RCX, R8,  R9,  R10, R11,
                                    RBX, R12, R13, R14, R15};
@@ -73,12 +80,13 @@ void Compiler::resetCompilerState() {
   for (REG r : regs) availableRegs.push(r);
 }
 
-void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
-  if (startsWithLabel)
+void Compiler::compile(RecordEntry entry, set<ProgramCounter> innerLabels) {
+  if (innerLabels.contains(entry.pc))
     nativeTrace.push_back({x86::LABEL, labelAt(entry.pc, Value(0))});
   switch (entry.inst.mnemonic) {
-    // ILOAD, ICONST and ISTORE have been changed from ILOAD_0, ILOAD_1 etc. to
-    // their parameterized counter parts in order to reduce code duplication
+    // ILOAD, ICONST and ISTORE have been changed from ILOAD_0, ILOAD_1 etc.
+    // to their parameterized counter parts in order to reduce code
+    // duplication
     case JVM::ILOAD: {
       int var = entry.inst.params[0].val.intValue;
       Op dst = getFirstAvailableReg();
@@ -124,10 +132,14 @@ void Compiler::compile(RecordEntry entry, bool startsWithLabel) {
       compileBailoutFor(label);
       break;
     }
-    case JVM::GOTO:
-      nativeTrace.push_back(
-          {x86::JMP, labelAt(entry.pc, entry.inst.params[0])});
+    case JVM::GOTO: {
+      Op label = labelAt(entry.pc, entry.inst.params[0]);
+      nativeTrace.push_back({x86::JMP, label});
+      if (!innerLabels.contains(label.pc)) {
+        compileBailoutFor(label);
+      }
       break;
+    }
 
     case JVM::IADD: {
       concat(nativeTrace, generateArithmetic(x86::ADD));
@@ -211,7 +223,7 @@ void Compiler::compileBailoutFor(Op label) {
   long idForPc = exitId++;
   exitPoints[idForPc] = label.pc;
   bailoutCode.push_back(
-      {x86::MOV, {REGISTER, .reg = RAX}, {IMMEDIATE, .val = Value(idForPc)}});
+      {x86::MOV, {REGISTER, .reg = RSI}, {IMMEDIATE, .val = Value(idForPc)}});
   bailoutCode.push_back({x86::JMP, exitLabel});
 }
 

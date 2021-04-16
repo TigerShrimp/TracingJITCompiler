@@ -9,13 +9,7 @@
 
 #include "Assembler.hpp"
 #include "Definitions.hpp"
-
-typedef long (*pfunc)(void **);
-
-union TracePointer {
-  pfunc execute;
-  uint8_t *startAddr;
-};
+#include "TraceHandler.hpp"
 
 struct Memory {
   uint8_t *startAddr;

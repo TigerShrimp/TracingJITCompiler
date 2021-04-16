@@ -52,7 +52,11 @@ void TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
       } else {
         ProgramCounter branchTarget = pc;
         branchTarget.instructionIndex += offset;
-        innerBranchTargets.insert(branchTarget);
+        if (traceStart == branchTarget) {
+          innerBranchTargets.insert(branchTarget);
+        } else {
+          outerBranchTargets.insert(branchTarget);
+        }
       }
       break;
     }

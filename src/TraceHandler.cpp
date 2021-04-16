@@ -2,6 +2,24 @@
 
 #include "Definitions.hpp"
 
+int handleTraceExit(ExitInformation* info, int exitId) {
+  // std::cout << "Exit:" << exitId << std::endl;
+  ProgramCounter exitPc = info->exitPoints->at(exitId);
+  if (info->traces->contains(exitPc)) {
+    Trace trace = info->traces->at(exitPc);
+    asm volatile(
+        "mov %0, %%rdi;\n\t"
+        "mov %1, %%rsi;\n\t"
+        "jmp *%2;\n\t"
+        :
+        : "r"(info), "r"((void*)&handleTraceExit),
+          "r"((void*)trace.tracePointer.startAddr)
+        : "rdi", "rdi");
+    // return trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
+  }
+  return exitId;
+}
+
 bool TraceHandler::hasTrace(ProgramCounter pc) {
   bool has = traces.contains(pc);
   DEBUG_PRINT("Trace at ({},{}) = {}\n", pc.methodIndex, pc.instructionIndex,
@@ -22,17 +40,29 @@ ProgramCounter TraceHandler::runTrace(State* state) {
                 (void*)&(local.val));
     args[key] = (void*)&(local.val);
   }
+
+  ExitInformation* info = new ExitInformation{args, &exitPoints, &traces};
   DEBUG_PRINT("Will run trace at {}\n", (void*)&trace.tracePointer.startAddr);
-  size_t exitPoint = trace.tracePointer.execute(args);
+  int exitPoint =
+      trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
   DEBUG_PRINT("Exit point {} = ({},{})\n", exitPoint,
-              trace.exitPoints[exitPoint].methodIndex,
-              trace.exitPoints[exitPoint].instructionIndex);
+              exitPoints[exitPoint].methodIndex,
+              exitPoints[exitPoint].instructionIndex);
   free(args);
-  return trace.exitPoints[exitPoint];
+  delete info;
+  return exitPoints[exitPoint];
 }
 
 void TraceHandler::insertTrace(ProgramCounter pc, Trace trace) {
+  DEBUG_PRINT("Inserted trace for ({},{}) at address: 0x{:x}\n", pc.methodIndex,
+              pc.instructionIndex, (size_t)trace.tracePointer.startAddr);
   traces[pc] = trace;
+  for (auto& [id, exitPc] : trace.exitPoints) {
+    DEBUG_PRINT("Exit point {} -> ({},{}) added\n", id, exitPc.methodIndex,
+                exitPc.instructionIndex);
+    assert(!exitPoints.contains(id) && "Cannot have more than one same exitId");
+    exitPoints[id] = exitPc;
+  }
 }
 
 void TraceHandler::insertTrace(TracePointer ptr, size_t method_index,

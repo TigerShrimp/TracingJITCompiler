@@ -35,13 +35,13 @@ class Compiler {
   std::list<Instruction> bailoutCode;
   const ProgramCounter exitPc = {0, 0};
   const Op exitLabel = {LABEL, .pc = exitPc};
-  long exitId;
+  long exitId = 0;
   std::map<long, ProgramCounter> exitPoints;
   std::stack<Op> operandStack;
   std::queue<REG> availableRegs;
   std::queue<XREG> availableXRegs;
   void resetCompilerState();
-  void compile(RecordEntry, bool);
+  void compile(RecordEntry, std::set<ProgramCounter>);
   void compileBailoutFor(Op);
   std::list<Instruction> generateMov(Op, Op);
   std::list<Instruction> generateVariableLoad(Op, int);
