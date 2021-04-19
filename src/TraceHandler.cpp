@@ -2,19 +2,21 @@
 
 #include "Definitions.hpp"
 
-int handleTraceExit(ExitInformation* info, int exitId) {
-  // std::cout << "Exit:" << exitId << std::endl;
+inline int handleTraceExit(ExitInformation* info, int exitId) {
   ProgramCounter exitPc = info->exitPoints->at(exitId);
   if (info->traces->contains(exitPc)) {
+    // std::cout << "Contains:" << exitId << std::endl;
     Trace trace = info->traces->at(exitPc);
+    // std::cout << "Has:" << exitId << std::endl;
     asm volatile(
         "mov %0, %%rdi;\n\t"
         "mov %1, %%rsi;\n\t"
+        "leave;\n\t"
         "jmp *%2;\n\t"
         :
         : "r"(info), "r"((void*)&handleTraceExit),
           "r"((void*)trace.tracePointer.startAddr)
-        : "rdi", "rdi");
+        : "rdi", "rsi");
     // return trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
   }
   return exitId;
@@ -42,7 +44,8 @@ ProgramCounter TraceHandler::runTrace(State* state) {
   }
 
   ExitInformation* info = new ExitInformation{args, &exitPoints, &traces};
-  DEBUG_PRINT("Will run trace at {}\n", (void*)&trace.tracePointer.startAddr);
+  DEBUG_PRINT("Will run trace at 0x{:x}\n",
+              (size_t)trace.tracePointer.startAddr);
   int exitPoint =
       trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
   DEBUG_PRINT("Exit point {} = ({},{})\n", exitPoint,
