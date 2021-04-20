@@ -31,16 +31,16 @@ void RunTime::run(Program *program) {
       traceHandler.insertTrace(recording.startPc, trace);
     }
     if (traceHandler.hasTrace(pc)) {
-      ProgramCounter exitPc;
       // NATIVE_TRACE
-      exitPc = traceHandler.runTrace(state);
+      ProgramCounter exitPc = traceHandler.runTrace(state);
       profiler.countSideExitFor(exitPc);
       if (profiler.isHot(exitPc)) {
         // pc is the program counter before entering the trace, i.e. the
         // header of the loop where the trace starts.
-        ProgramCounter loopHeaderPc;
+        ProgramCounter loopHeaderPc = pc;
+        pc = exitPc;  // Only for visualizer
         // INIT_RECORDING
-        traceRecorder.initRecording(loopHeaderPc = pc, exitPc);
+        traceRecorder.initRecording(loopHeaderPc, exitPc);
         DEBUG_PRINT("\tHot side exit found ({},{})\n", exitPc.methodIndex,
                     exitPc.instructionIndex);
       }
