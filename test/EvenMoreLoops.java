@@ -1,32 +1,34 @@
 public class EvenMoreLoops {
   public static void main(String[] args) {
+    int a = 1;
     int i = 0, j = 0, k = 0, l = 0, m = 0, n = 0, o = 0, p = 0, q = 0;
-    for (; i < 25; i++) {
-      System.out.println(i);
+    for (; i < 3; i++) {
+      a += i;
     }
-    for (; j < 25; j++) {
-      System.out.println(j);
+    for (; j < 3; j++) {
+      a += i;
     }
-    for (; k < 25; k++) {
-      System.out.println(k);
+    for (; k < 3; k++) {
+      a += i;
     }
-    for (; l < 25; l++) {
-      System.out.println(l);
+    for (; l < 3; l++) {
+      a += i;
     }
-    for (; m < 25; m++) {
-      System.out.println(m);
+    for (; m < 3; m++) {
+      a += i;
     }
-    for (; n < 25; n++) {
-      System.out.println(n);
+    for (; n < 3; n++) {
+      a += i;
     }
-    for (; o < 25; o++) {
-      System.out.println(o);
+    for (; o < 3; o++) {
+      a += i;
     }
-    for (; p < 25; p++) {
-      System.out.println(p);
+    for (; p < 3; p++) {
+      a += i;
     }
-    for (; q < 25; q++) {
-      System.out.println(q);
+    for (; q < 3; q++) {
+      a += i;
     }
+    System.out.println(a);
   }
 }

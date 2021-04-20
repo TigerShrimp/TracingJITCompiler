@@ -48,7 +48,7 @@ void RunTime::run(Program *program) {
     } else {
       ByteCodeInstruction inst = interpreter.prepareNext(program);
       profiler.countVisitFor(pc);
-      if (!traceRecorder.isRecording() && profiler.isHot(pc)) {
+      if (profiler.isHot(pc)) {
         DEBUG_PRINT("\tHot loop found ({},{})\n", pc.methodIndex,
                     pc.instructionIndex);
         // INIT_RECORDING

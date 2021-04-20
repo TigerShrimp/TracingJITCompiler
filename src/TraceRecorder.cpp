@@ -25,6 +25,7 @@ bool TraceRecorder::recordingDone(ProgramCounter pc) {
 
 void TraceRecorder::initRecording(ProgramCounter loopHead,
                                   ProgramCounter start) {
+  if (recording && traceStart == start) return;
   recording = true;
   lastInstructionWasBranch = false;
   traceStart = start;
