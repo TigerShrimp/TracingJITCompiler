@@ -18,7 +18,7 @@ struct Trace {
 };
 
 struct ExitInformation {
-  void** variables;
+  Value::Data* variables;
   std::map<long, ProgramCounter>* exitPoints;
   std::map<ProgramCounter, Trace>* traces;
 };

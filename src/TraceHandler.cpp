@@ -2,22 +2,19 @@
 
 #include "Definitions.hpp"
 
-inline int handleTraceExit(ExitInformation* info, int exitId) {
+int handleTraceExit(ExitInformation* info, int exitId) {
   ProgramCounter exitPc = info->exitPoints->at(exitId);
   if (info->traces->contains(exitPc)) {
-    // std::cout << "Contains:" << exitId << std::endl;
     Trace trace = info->traces->at(exitPc);
-    // std::cout << "Has:" << exitId << std::endl;
     asm volatile(
-        "mov %0, %%rdi;\n\t"
-        "mov %1, %%rsi;\n\t"
-        "leave;\n\t"
-        "jmp *%2;\n\t"
+        "mov %[info], %%rdi;"
+        "mov %[funPtr], %%rsi;"
+        "leave;"
+        "jmp *%[tracePtr];"
         :
-        : "r"(info), "r"((void*)&handleTraceExit),
-          "r"((void*)trace.tracePointer.startAddr)
+        : [info] "r"(info), [funPtr] "r"(&handleTraceExit),
+          [tracePtr] "r"(trace.tracePointer.startAddr)
         : "rdi", "rsi");
-    // return trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
   }
   return exitId;
 }
@@ -35,12 +32,11 @@ bool TraceHandler::hasTrace(ProgramCounter pc) {
 ProgramCounter TraceHandler::runTrace(State* state) {
   DEBUG_PRINT("Will run trace\n");
   Trace trace = traces[state->pc];
-  void** args = (void**)malloc(sizeof(void*) * trace.maxLocals);
+  Value::Data* args =
+      (Value::Data*)calloc(sizeof(Value::Data), trace.maxLocals);
   DEBUG_PRINT("Writing store, {}\n", state->locals.size());
-  for (const auto& [key, local] : state->locals) {
-    DEBUG_PRINT("Var {} val {} addr {}\n", key, local.val.intValue,
-                (void*)&(local.val));
-    args[key] = (void*)&(local.val);
+  for (auto& [key, local] : state->locals) {
+    args[key] = state->locals[key].val;
   }
 
   ExitInformation* info = new ExitInformation{args, &exitPoints, &traces};
@@ -48,10 +44,10 @@ ProgramCounter TraceHandler::runTrace(State* state) {
               (size_t)trace.tracePointer.startAddr);
   int exitPoint =
       trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
-  DEBUG_PRINT("Exit point {} = ({},{})\n", exitPoint,
-              exitPoints[exitPoint].methodIndex,
-              exitPoints[exitPoint].instructionIndex);
-  free(args);
+  for (const auto& [key, local] : state->locals) {
+    state->locals[key].val = (Value::Data)args[key];
+  }
+  free((void*)args);
   delete info;
   return exitPoints[exitPoint];
 }

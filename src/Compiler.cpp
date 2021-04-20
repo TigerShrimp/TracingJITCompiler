@@ -171,12 +171,13 @@ void Compiler::compile(RecordEntry entry, set<ProgramCounter> innerLabels) {
     }
     case JVM::IINC: {
       int var = entry.inst.params[0].val.intValue;
-      Op dst = getFirstAvailableReg();
-      concat(nativeTrace, generateMov(dst, {MEMORY, .mem = {RDI, 8 * var}}));
-      Op dstPtr = {MEMORY, .mem = {dst.reg, 0}};
-      nativeTrace.push_back(
-          {x86::ADD, dstPtr, {IMMEDIATE, .val = entry.inst.params[1]}});
-      availableRegs.push(dst.reg);
+      // Op dst = getFirstAvailableReg();
+      // concat(nativeTrace, generateMov(dst, {MEMORY, .mem = {RDI, 8 * var}}));
+      // Op dstPtr = {MEMORY, .mem = {dst.reg, 0}};
+      nativeTrace.push_back({x86::ADD,
+                             {MEMORY, .mem = {RDI, 8 * var}},
+                             {IMMEDIATE, .val = entry.inst.params[1]}});
+      // availableRegs.push(dst.reg);
       break;
     }
     default:
@@ -249,42 +250,13 @@ list<Instruction> Compiler::generateMov(Op dst, Op src) {
 
 list<Instruction> Compiler::generateVariableLoad(Op dst, int var) {
   list<Instruction> instructions;
-  bool borrowsRDI = false;
-  Op dstCopy = dst;
-  Op rdi = {REGISTER, .reg = RDI};
-  if (dst.opType == MEMORY) {
-    borrowsRDI = true;
-    instructions.push_back({x86::PUSH, rdi});
-    dst = rdi;
-  }
   concat(instructions, generateMov(dst, {MEMORY, .mem = {RDI, 8 * var}}));
-  REG base = dst.reg;
-  concat(instructions, generateMov(dst, {MEMORY, .mem = {base, 0}}));
-  if (borrowsRDI) {
-    concat(instructions, generateMov(dstCopy, dst));
-    instructions.push_back({x86::POP, rdi});
-  }
   return instructions;
 }
 
 list<Instruction> Compiler::generateVariableStore(Op src, int var) {
   list<Instruction> instructions;
-  Op tmp;
-  bool borrowsRDI = false;
-  Op rdi = {REGISTER, .reg = RDI};
-  if (availableRegs.empty()) {
-    borrowsRDI = true;
-    instructions.push_back({x86::PUSH, rdi});
-    tmp = rdi;
-  } else {
-    tmp = {REGISTER, .reg = availableRegs.front()};
-  }
-  concat(instructions, generateMov(tmp, {MEMORY, .mem = {RDI, 8 * var}}));
-  REG base = tmp.reg;
-  concat(instructions, generateMov({MEMORY, .mem = {base, 0}}, src));
-  if (borrowsRDI) {
-    instructions.push_back({x86::POP, rdi});
-  }
+  concat(instructions, generateMov({MEMORY, .mem = {RDI, 8 * var}}, src));
   return instructions;
 }
 

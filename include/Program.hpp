@@ -18,7 +18,7 @@ struct Type {
 
 struct Value {
   Type type;
-  union {
+  union Data {
     int intValue;
     long longValue;
     float floatValue;
