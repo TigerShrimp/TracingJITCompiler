@@ -38,8 +38,6 @@ void RunTime::run(Program *program) {
         // pc is the program counter before entering the trace, i.e. the
         // header of the loop where the trace starts.
         ProgramCounter loopHeaderPc = pc;
-        pc = exitPc;  // Only for visualizer
-        // INIT_RECORDING
         traceRecorder.initRecording(loopHeaderPc, exitPc);
         DEBUG_PRINT("\tHot side exit found ({},{})\n", exitPc.methodIndex,
                     exitPc.instructionIndex);
