@@ -66,6 +66,7 @@ void TraceRecorder::record(ProgramCounter pc, ByteCodeInstruction inst) {
     case JVM::IFGT:
     case JVM::IF_ICMPGE:
     case JVM::IF_ICMPGT:
+    case JVM::IF_ICMPLE:
     case JVM::IF_ICMPNE: {
       lastInstructionWasBranch = true;
       break;
@@ -140,6 +141,9 @@ void TraceRecorder::branchFlip(ProgramCounter nextPc) {
         break;
       case JVM::IF_ICMPGT:
         flipped = JVM::IF_ICMPLE;
+        break;
+      case JVM::IF_ICMPLE:
+        flipped = JVM::IF_ICMPGT;
         break;
       case JVM::IF_ICMPNE:
         flipped = JVM::IF_ICMPEQ;

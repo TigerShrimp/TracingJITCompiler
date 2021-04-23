@@ -69,6 +69,7 @@ const x86MnemMap lookupX86Mnemonics = {
     {x86::SUBSD, asmjit::x86::Inst::kIdSubsd},
     {x86::CMP, asmjit::x86::Inst::kIdCmp},
     {x86::JMP, asmjit::x86::Inst::kIdJmp},
+    {x86::JG, asmjit::x86::Inst::kIdJg},
     {x86::JGE, asmjit::x86::Inst::kIdJge},
     {x86::JE, asmjit::x86::Inst::kIdJe},
     {x86::JLE, asmjit::x86::Inst::kIdJle},
