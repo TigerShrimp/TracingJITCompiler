@@ -21,6 +21,7 @@ enum Mnemonic {
   MULSD,
   SUBSD,
   CMP,
+  JG,
   JGE,
   JE,
   JNE,

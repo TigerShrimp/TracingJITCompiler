@@ -187,6 +187,13 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       if (lhs > rhs) program->jump(offset, 3);
       break;
     }
+    case IF_ICMPLE: {
+      int rhs = program->pop().val.intValue;
+      int lhs = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (lhs <= rhs) program->jump(offset, 3);
+      break;
+    }
     case IF_ICMPNE: {
       int rhs = program->pop().val.intValue;
       int lhs = program->pop().val.intValue;
@@ -374,6 +381,7 @@ ByteCodeInstruction Interpreter::prepareNext(Program *program) {
     case IFNE:
     case IF_ICMPGE:
     case IF_ICMPGT:
+    case IF_ICMPLE:
     case IF_ICMPNE:
     case GOTO: {
       params.push_back(Value(readParametersAsInt(program)));

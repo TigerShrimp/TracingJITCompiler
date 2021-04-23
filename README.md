@@ -34,9 +34,9 @@ TODO:
 - ./include/Program.hpp:69:  // TODO: Remove these attributes
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Compiler.cpp:26:  // TODO: change explicit 8 to variable "sizeOfRegister".
-- ./src/Compiler.cpp:74:  // TODO: Maybe include RDI and RAX
-- ./src/Compiler.cpp:78:  // TODO: fill avail regs and xregs with all registers
-- ./src/Interpreter.cpp:384:      // TODO: Make Long/Double constants more general
+- ./src/Compiler.cpp:73:  // TODO: Maybe include RDI and RAX
+- ./src/Compiler.cpp:77:  // TODO: fill avail regs and xregs with all registers
+- ./src/Interpreter.cpp:392:      // TODO: Make Long/Double constants more general
 - ./src/TraceRecorder.cpp:8:  // TODO: Maybe try handling this in a more pretty way
 - ./src/RunTime.cpp:8:  // TODO: Either move this functionality to Compiler or remove
 - ./src/RunTime.cpp:81:  // TODO: Standardize exception handing.

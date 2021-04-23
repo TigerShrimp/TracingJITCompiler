@@ -46,7 +46,6 @@ Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   bailoutCode.push_back({x86::POP, rdi});
   bailoutCode.push_back({x86::LEAVE});
   bailoutCode.push_back({x86::JMP, rax});
-  bailoutCode.push_back({x86::RET});
 
   // Combine all parts of native code to single list
   for (auto code = initCode.rbegin(); code != initCode.rend(); code++) {
@@ -116,6 +115,12 @@ void Compiler::compile(RecordEntry entry, set<ProgramCounter> innerLabels) {
       concat(nativeTrace,
              generateCondBranch(x86::JGE,
                                 labelAt(entry.pc, entry.inst.params[0])));
+      break;
+    }
+    case JVM::IF_ICMPGT: {
+      concat(
+          nativeTrace,
+          generateCondBranch(x86::JG, labelAt(entry.pc, entry.inst.params[0])));
       break;
     }
     case JVM::IF_ICMPLE: {
