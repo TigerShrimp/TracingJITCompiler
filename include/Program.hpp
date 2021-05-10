@@ -1,5 +1,7 @@
 #ifndef PROGRAM_HPP
 #define PROGRAM_HPP
+#include <math.h>
+
 #include <iostream>
 #include <map>
 #include <sstream>

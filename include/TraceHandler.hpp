@@ -19,13 +19,12 @@ struct Trace {
 
 struct ExitInformation {
   Value::Data* variables;
-  std::map<long, ProgramCounter>* exitPoints;
-  std::map<ProgramCounter, Trace>* traces;
+  uint8_t** traces;
 };
 
 typedef int (*exitfPtr)(ExitInformation*);
 
-int handleTraceExit(ExitInformation*, int);
+extern "C" int handleTraceExit(ExitInformation*, int);
 
 class TraceHandler {
  public:

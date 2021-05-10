@@ -31,7 +31,7 @@ TODO:
 
 - ./include/x86.hpp:5:// TODO change name to Mnemonic
 - ./include/JVM/ByteCodes.hpp:264:    // TODO: WIDE is wierd, if operand after is iinc, then 5 operands,
-- ./include/Program.hpp:69:  // TODO: Remove these attributes
+- ./include/Program.hpp:71:  // TODO: Remove these attributes
 - ./include/Definitions.hpp:9:// TODO: do this with std::format instead as soon as clang adds support for it.
 - ./src/Compiler.cpp:26:  // TODO: change explicit 8 to variable "sizeOfRegister".
 - ./src/Compiler.cpp:73:  // TODO: Maybe include RDI and RAX

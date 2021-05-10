@@ -2,22 +2,28 @@
 
 #include "Definitions.hpp"
 
-int handleTraceExit(ExitInformation* info, int exitId) {
-  ProgramCounter exitPc = info->exitPoints->at(exitId);
-  if (info->traces->contains(exitPc)) {
-    Trace trace = info->traces->at(exitPc);
-    asm volatile(
-        "mov %[info], %%rdi;"
-        "mov %[funPtr], %%rsi;"
-        "leave;"
-        "jmp *%[tracePtr];"
-        :
-        : [info] "r"(info), [funPtr] "r"(&handleTraceExit),
-          [tracePtr] "r"(trace.tracePointer.startAddr)
-        : "rdi", "rsi");
-  }
-  return exitId;
-}
+asm("_handleTraceExit:;"
+    "push %rdi;"
+    "mov $8, %r8;"
+    "mov (%rdi, %r8), %rdi;"
+    "mov (%rdi, %rsi, 8), %r8;"
+    "pop %rdi;"
+    "cmp $0, %r8;"
+    "je return;"
+    "lea _handleTraceExit(%rip), %rsi;"
+    "jmp *%r8;"
+    "return:;"
+    "mov %rsi, %rax;"
+    "ret;");
+// int handleTraceExit(ExitInformation* info, int exitId) {
+//   if (info->traces[exitId] != 0) {
+//     TracePointer tracePointer;
+//     tracePointer.startAddr = info->traces[exitId];
+//     return tracePointer.execute((void*)info, (void*)(&handleTraceExit));
+//   } else {
+//     return exitId;
+//   }
+// }
 
 bool TraceHandler::hasTrace(ProgramCounter pc) {
   bool has = traces.contains(pc);
@@ -36,17 +42,24 @@ ProgramCounter TraceHandler::runTrace(State* state) {
       (Value::Data*)calloc(sizeof(Value::Data), trace.maxLocals);
   DEBUG_PRINT("Writing store, {}\n", state->locals.size());
   for (auto& [key, local] : state->locals) {
-    args[key] = state->locals[key].val;
+    args[key].longValue = (long)state->locals[key].val.intValue;
   }
+  uint8_t** tracesArray = (uint8_t**)calloc(sizeof(size_t*), exitPoints.size());
+  for (const auto& [id, exitPc] : exitPoints) {
+    if (traces.contains(exitPc)) {
+      tracesArray[id] = traces[exitPc].tracePointer.startAddr;
+    }
+  }
+  ExitInformation* info = new ExitInformation{args, tracesArray};
 
-  ExitInformation* info = new ExitInformation{args, &exitPoints, &traces};
   DEBUG_PRINT("Will run trace at 0x{:x}\n",
               (size_t)trace.tracePointer.startAddr);
   int exitPoint =
       trace.tracePointer.execute((void*)info, (void*)&handleTraceExit);
   for (const auto& [key, local] : state->locals) {
-    state->locals[key].val = (Value::Data)args[key];
+    state->locals[key].val.intValue = (int)args[key].longValue;
   }
+  free(tracesArray);
   free((void*)args);
   delete info;
   return exitPoints[exitPoint];
