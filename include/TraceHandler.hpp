@@ -34,6 +34,7 @@ class TraceHandler {
   void insertTrace(TracePointer, ProgramCounter,
                    std::map<size_t, ProgramCounter>);
   void insertTrace(TracePointer, size_t, size_t, size_t);
+  int traceCount();
 
  private:
   std::map<ProgramCounter, Trace> traces;

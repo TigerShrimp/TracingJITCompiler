@@ -84,3 +84,5 @@ void TraceHandler::insertTrace(TracePointer ptr, size_t method_index,
   DEBUG_PRINT("Write trace at: ({},{})", method_index, start)
   traces[{start, method_index}] = trace;
 }
+
+int TraceHandler::traceCount() { return traces.size(); }

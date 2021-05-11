@@ -11,7 +11,15 @@ RunTime::RunTime(vector<uint8_t> initialTrace, int method, int start, int end)
 }
 
 bool recordingTrace() { return false; }
-
+#ifdef INTERPRETING_ONLY
+void RunTime::run(Program *program) {
+  initProgramState(program);
+  while (!program->states.empty()) {
+    ByteCodeInstruction inst = interpreter.prepareNext(program);
+    interpreter.evalInstruction(program, inst);
+  }
+}
+#else
 void RunTime::run(Program *program) {
   // BEFORE_RUN
   initProgramState(program);
@@ -59,7 +67,13 @@ void RunTime::run(Program *program) {
       interpreter.evalInstruction(program, inst);
     }
   }
+#ifdef TRACE_INFO
+  int traces = traceHandler.traceCount();
+  size_t bytesWritten = compiler.bytesWritten();
+  std::cout << traces << "," << bytesWritten << std::endl;
+#endif
 }
+#endif
 
 void RunTime::initProgramState(Program *program) {
   size_t main = findIndexOfMain(program);

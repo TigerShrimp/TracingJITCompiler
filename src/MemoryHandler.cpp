@@ -27,6 +27,10 @@ TracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   uint8_t* startAddr = cursor;
   DEBUG_PRINT("Trace start address: 0x{:x}\n", (size_t)startAddr)
 
+#ifdef TRACE_INFO
+  bytesWritten += traceBytes.size();
+#endif
+
   for (auto byte : traceBytes) {
     DEBUG_PRINT("{:02X}", byte);
     *(cursor++) = byte;
@@ -38,6 +42,8 @@ TracePointer MemoryHandler::writeTrace(vector<uint8_t> traceBytes) {
   tp.startAddr = startAddr;
   return tp;
 }
+
+size_t MemoryHandler::getBytesWritten() { return bytesWritten; }
 
 bool MemoryHandler::allocationNeeded(size_t traceSize) {
   if (allocatedMemory.size() == 0) return true;

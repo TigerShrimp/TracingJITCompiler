@@ -3,6 +3,8 @@
 #include <fmt/core.h>
 
 #include <iostream>
+// #define TRACE_INFO
+// #define INTERPRETING_ONLY
 // #define DEBUG_PRINT_ON
 #ifdef DEBUG_PRINT_ON
 

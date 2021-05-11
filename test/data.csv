@@ -1,0 +1,13 @@
+Test name, Interpreter, Tracing, Java, Actual Java run time, Traces, Bytes Written
+Empty,7,7,89,7,0,0
+TwoHotSideExits,840,6,93,11,3,195
+EvenMoreLoops,4,5,98,16,0,0
+SingleLoop,5517,11,111,29,1,73
+ChineseRemainder,6,5,104,22,1,149
+Factorial,4,5,99,17,1,65
+IsPrime,48,7,89,7,2,193
+LongFactorial,7,8,92,10,0,0
+FloatFactorial,7,6,96,14,0,0
+DoubleFactorial,5,6,95,13,0,0
+ManyVariables,59,8,85,3,1,449
+ManyVariablesMulTrace,73,6,93,11,4,1936

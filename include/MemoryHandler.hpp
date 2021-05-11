@@ -22,12 +22,14 @@ class MemoryHandler {
 
   void freeTraces();
   TracePointer writeTrace(std::vector<uint8_t>);
+  size_t getBytesWritten();
 
  private:
   size_t pageSize;
   std::vector<Memory> allocatedMemory;
   uint8_t *cursor;
   size_t currentPage;
+  size_t bytesWritten = 0;
 
   bool allocationNeeded(size_t);
   void allocateMemory(size_t);

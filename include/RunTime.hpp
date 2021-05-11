@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-
 #include "ByteCodes.hpp"
 #include "Compiler.hpp"
 #include "Definitions.hpp"

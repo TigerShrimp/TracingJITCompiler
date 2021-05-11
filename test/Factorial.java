@@ -1,13 +1,12 @@
 public class Factorial {
   public static void main(String[] args) {
-    int f = factorial(5);
+    int f = factorial(10);
     System.out.println(f);
   }
 
   public static int factorial(int n) {
-    if (n <= 1)
-      return 1;
-    else
-      return n * factorial(n - 1);
+    int accumulator = 1;
+    for (int i = 2; i <= n; i++) accumulator *= i;
+    return accumulator;
   }
 }

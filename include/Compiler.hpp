@@ -27,6 +27,7 @@ class Compiler {
   // backwards.
   // Put guards, input bailout code.
   Trace compileAndInstall(int, Recording);
+  size_t bytesWritten();
 
  private:
   Assembler assembler;
@@ -48,6 +49,7 @@ class Compiler {
   std::list<Instruction> generateVariableStore(Op, int);
   std::list<Instruction> generateCondBranch(x86::Mnemonic, Op);
   std::list<Instruction> generateArithmetic(x86::Mnemonic);
+  std::list<Instruction> generateRemDiv(bool);
   std::list<Instruction> movWithSwap(std::map<size_t, Op>&, Op, size_t);
   Op getFirstAvailableReg();
   Op popAndFree();

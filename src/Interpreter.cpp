@@ -161,16 +161,61 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       break;
     }
     // Control flow
+    case IFEQ: {
+      int value = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (value == 0) program->jump(offset, 3);
+      break;
+    }
     case IFNE: {
       int value = program->pop().val.intValue;
       int offset = inst.params[0].val.intValue;
       if (value != 0) program->jump(offset, 3);
       break;
     }
+    case IFLT: {
+      int value = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (value < 0) program->jump(offset, 3);
+      break;
+    }
+    case IFGE: {
+      int value = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (value >= 0) program->jump(offset, 3);
+      break;
+    }
     case IFGT: {
       int value = program->pop().val.intValue;
       int offset = inst.params[0].val.intValue;
       if (value > 0) program->jump(offset, 3);
+      break;
+    }
+    case IFLE: {
+      int value = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (value <= 0) program->jump(offset, 3);
+      break;
+    }
+    case IF_ICMPEQ: {
+      int rhs = program->pop().val.intValue;
+      int lhs = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (lhs == rhs) program->jump(offset, 3);
+      break;
+    }
+    case IF_ICMPNE: {
+      int rhs = program->pop().val.intValue;
+      int lhs = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (lhs != rhs) program->jump(offset, 3);
+      break;
+    }
+    case IF_ICMPLT: {
+      int rhs = program->pop().val.intValue;
+      int lhs = program->pop().val.intValue;
+      int offset = inst.params[0].val.intValue;
+      if (lhs < rhs) program->jump(offset, 3);
       break;
     }
     case IF_ICMPGE: {
@@ -192,13 +237,6 @@ void Interpreter::evalInstruction(Program *program, ByteCodeInstruction inst) {
       int lhs = program->pop().val.intValue;
       int offset = inst.params[0].val.intValue;
       if (lhs <= rhs) program->jump(offset, 3);
-      break;
-    }
-    case IF_ICMPNE: {
-      int rhs = program->pop().val.intValue;
-      int lhs = program->pop().val.intValue;
-      int offset = inst.params[0].val.intValue;
-      if (lhs != rhs) program->jump(offset, 3);
       break;
     }
     case GOTO: {
@@ -377,12 +415,18 @@ ByteCodeInstruction Interpreter::prepareNext(Program *program) {
     // All the mnemonics that take two bytes as parameters and combines them
     // into a single integer.
     case SIPUSH:
-    case IFGT:
+    case IFEQ:
     case IFNE:
+    case IFLT:
+    case IFGE:
+    case IFGT:
+    case IFLE:
+    case IF_ICMPEQ:
+    case IF_ICMPNE:
+    case IF_ICMPLT:
     case IF_ICMPGE:
     case IF_ICMPGT:
     case IF_ICMPLE:
-    case IF_ICMPNE:
     case GOTO: {
       params.push_back(Value(readParametersAsInt(program)));
       break;

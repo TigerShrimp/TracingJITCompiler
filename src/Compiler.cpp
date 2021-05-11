@@ -4,6 +4,8 @@ using namespace std;
 
 Compiler::~Compiler() { memoryHandler.freeTraces(); }
 
+size_t Compiler::bytesWritten() { return memoryHandler.getBytesWritten(); }
+
 Trace Compiler::compileAndInstall(int maxLocals, Recording recording) {
   DEBUG_PRINT("Compiling starting\n");
   resetCompilerState();
@@ -152,26 +154,18 @@ void Compiler::compile(RecordEntry entry, set<ProgramCounter> innerLabels) {
     }
     case JVM::ISUB: {
       concat(nativeTrace, generateArithmetic(x86::SUB));
-
+      break;
+    }
+    case JVM::IMUL: {
+      concat(nativeTrace, generateArithmetic(x86::IMUL));
+      break;
+    }
+    case JVM::IDIV: {
+      concat(nativeTrace, generateRemDiv(false));
       break;
     }
     case JVM::IREM: {
-      Op denomOp = operandStack.top();
-      operandStack.pop();
-      Op nomOp = popAndFree();
-      Op opDst;
-      concat(nativeTrace, generateMov({REGISTER, .reg = RAX}, nomOp));
-      if (denomOp.opType == REGISTER) {
-        opDst = denomOp;
-      } else {
-        opDst = getFirstAvailableReg();
-        concat(nativeTrace, generateMov(opDst, denomOp));
-      }
-      Op rdx = {REGISTER, .reg = RDX};
-      nativeTrace.push_back({x86::MOV, rdx, {IMMEDIATE, .val = Value(0)}});
-      nativeTrace.push_back({x86::IDIV, opDst});
-      concat(nativeTrace, generateMov(opDst, rdx));
-      operandStack.push(opDst);
+      concat(nativeTrace, generateRemDiv(true));
       break;
     }
     case JVM::IINC: {
@@ -297,6 +291,29 @@ list<Instruction> Compiler::generateArithmetic(x86::Mnemonic inst) {
     availableRegs.push(op2.reg);
   }
   instructions.push_back({inst, opDst, op2});
+  operandStack.push(opDst);
+  return instructions;
+}
+
+list<Instruction> Compiler::generateRemDiv(bool isRem) {
+  list<Instruction> instructions;
+  Op rdx = {REGISTER, .reg = RDX};
+  Op rax = {REGISTER, .reg = RAX};
+  Op denomOp = operandStack.top();
+  operandStack.pop();
+  Op nomOp = popAndFree();
+  Op opDst;
+  concat(instructions, generateMov(rax, nomOp));
+  if (denomOp.opType == REGISTER) {
+    opDst = denomOp;
+  } else {
+    opDst = getFirstAvailableReg();
+    concat(instructions, generateMov(opDst, denomOp));
+  }
+  Op src = isRem ? rdx : rax;
+  instructions.push_back({x86::MOV, rdx, {IMMEDIATE, .val = Value(0)}});
+  instructions.push_back({x86::IDIV, opDst});
+  concat(instructions, generateMov(opDst, src));
   operandStack.push(opDst);
   return instructions;
 }
