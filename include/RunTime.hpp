@@ -2,6 +2,7 @@
 #define RUNTIME_HPP
 #include <fmt/core.h>
 
+#include <chrono>
 #include <map>
 #include <stack>
 #include <string>
