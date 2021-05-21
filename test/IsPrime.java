@@ -1,6 +1,6 @@
 public class IsPrime {
   public static void main(String[] args) {
-    int potentialPrime = 3803;
+    int potentialPrime = 104729;
     int largestCheck = integerRoot(potentialPrime);
     for (int i = 2; i < largestCheck; i++) {
       if (potentialPrime % i == 0) {

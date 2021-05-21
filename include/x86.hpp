@@ -24,6 +24,7 @@ enum Mnemonic {
   JG,
   JGE,
   JE,
+  JZ,
   JNE,
   JLE,
   JMP,

@@ -4,7 +4,7 @@
 
 #include <iostream>
 // #define TIMING
-// #define TRACE_INFO
+#define TRACE_INFO
 // #define INTERPRETING_ONLY
 // #define DEBUG_PRINT_ON
 #ifdef DEBUG_PRINT_ON

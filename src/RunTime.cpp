@@ -11,8 +11,8 @@ RunTime::RunTime(vector<uint8_t> initialTrace, int method, int start, int end)
 }
 
 bool recordingTrace() { return false; }
-#ifdef INTERPRETING_ONLY
 
+#ifdef INTERPRETING_ONLY
 void RunTime::run(Program *program) {
   initProgramState(program);
 #ifdef TIMING
@@ -33,13 +33,11 @@ void RunTime::run(Program *program) {
 void RunTime::run(Program *program) {
   // BEFORE_RUN
   initProgramState(program);
-
-// Start timing after Java program has been parsed.
 #ifdef TIMING
+  // Start timing after Java program has been parsed.
   auto before = chrono::time_point_cast<chrono::microseconds>(
       chrono::system_clock::now());
 #endif
-
   // Returning from main means the program stack will be
   // empty and the program will terminate.
   while (!program->states.empty()) {

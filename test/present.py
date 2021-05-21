@@ -2,12 +2,12 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 TABLE_TEMPLATE = "\\begin{{table}}[h]\n\
-    \\begin{{tabular}}{{|l|l|l|l|l|l|}}\n\
+    \\begin{{tabular}}{{|l|l|l|l|l|l|l|}}\n\
         \hline\n\
-        \\textbf{{\\footnotesize Test name}} & \\textbf{{\\footnotesize Interpreter}} & \\textbf{{\\footnotesize Tracing}} & \\textbf{{\\footnotesize Java}} & \\textbf{{\\footnotesize \\#Traces}} & \\textbf{{\\footnotesize Traces size}}\\\\ \hline\hline\n\
+        \\textbf{{\\footnotesize Test name}} & \\textbf{{\\footnotesize SLOC}} & \\textbf{{\\footnotesize Interpreter}} & \\textbf{{\\footnotesize Tracing}} & \\textbf{{\\footnotesize Java}} & \\textbf{{\\footnotesize \\#Traces}} & \\textbf{{\\footnotesize Traces size}}\\\\ \hline\hline\n\
 {}\
     \end{{tabular}}\n\
-    \caption{{Table with numbers}}\n\
+    \caption{{Exact measurements from tests carried out. SLOC stands for ”Source lines of code” and is a measure for the actual number of executable lines of code in a file.}}\n\
     \label{{tab:testresults}}\n\
 \end{{table}}"
 
@@ -28,8 +28,8 @@ with open('data.csv', 'r') as results:
         interpreter.append(i)
         tracing.append(t)
         java.append(j)
-        table_rows += "\t{{\\footnotesize {}}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {}}} & {{\\footnotesize {}B}} \\\\ \hline\n".format(l,
-                                                                                                                                                                                                                i, t, j, ts, b)
+        table_rows += "\t{{\\footnotesize {}}} & {{\\footnotesize ??}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {:.1f}ms}} & {{\\footnotesize {}}} & {{\\footnotesize {}B}} \\\\ \hline\n".format(l,
+                                                                                                                                                                                                                                        i, t, j, ts, b)
 
 
 max_time = max(max(tracing), max(java))
@@ -39,13 +39,13 @@ width = 0.25
 fig, ax = plt.subplots(figsize=(5.91, 5))
 interpreter_bar = ax.bar(x-width, interpreter,
                          width, label='Interpreting')
-tracing_bar = ax.bar(x, tracing, width, label='Tracing')
+tracing_bar = ax.bar(x, tracing, width, label='Tracing JIT')
 java_bar = ax.bar(x + width, java, width, label='Java')
 
 
 ax.set_ylabel('Execution time (ms)')
-ax.set_ylim(0, max_time*1.5)
 ax.set_xticks(x)
+ax.set_yscale('log')
 ax.set_xticklabels(labels)
 plt.xticks(rotation=90)
 ax.legend()

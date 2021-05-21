@@ -139,6 +139,14 @@ void Compiler::compile(RecordEntry entry, set<ProgramCounter> innerLabels) {
       compileBailoutFor(label);
       break;
     }
+    case JVM::IFNE: {
+      Op op = popAndFree();
+      nativeTrace.push_back({x86::CMP, op, {IMMEDIATE, .val = Value(0)}});
+      Op label = labelAt(entry.pc, entry.inst.params[0]);
+      nativeTrace.push_back({x86::JZ, label});
+      compileBailoutFor(label);
+      break;
+    }
     case JVM::GOTO: {
       Op label = labelAt(entry.pc, entry.inst.params[0]);
       nativeTrace.push_back({x86::JMP, label});

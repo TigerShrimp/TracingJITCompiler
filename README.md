@@ -39,6 +39,6 @@ TODO:
 - ./src/Interpreter.cpp:436:      // TODO: Make Long/Double constants more general
 - ./src/TraceRecorder.cpp:8:  // TODO: Maybe try handling this in a more pretty way
 - ./src/RunTime.cpp:8:  // TODO: Either move this functionality to Compiler or remove
-- ./src/RunTime.cpp:117:  // TODO: Standardize exception handing.
+- ./src/RunTime.cpp:115:  // TODO: Standardize exception handing.
 
 Created by Simon Kärrman och Jakob Erlandsson

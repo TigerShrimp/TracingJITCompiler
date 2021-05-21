@@ -3,15 +3,15 @@ public class ManyVariablesMulTrace {
     int a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t;
     a = b = c = d = e = f = g = h = i = j = k = l = m = n = o = p = q = r = s = t = 0;
     int offset;
-    for (int index = 0; index < 1000; index++) {
-      if (index % 5 == 0) {
-        offset = 15;
-      } else if (index % 11 == 0) {
-        offset = 16;
-      } else if (index % 23 == 0) {
-        offset = 17;
-      } else {
+    for (int index = 0; index < 5000; index++) {
+      if (index % 2 == 0) {
         offset = 1;
+      } else if (index % 3 == 0) {
+        offset = 2;
+      } else if (index % 5 == 0) {
+        offset = 3;
+      } else {
+        offset = 4;
       }
       a += offset;
       b += offset;
