@@ -48,7 +48,7 @@ def get_trace_info(program):
     return info[0], info[1][:-1]
 
 
-def run_experiments(program, runs=5):
+def run_experiments(program, runs=1000):
     print("{}:".format(program))
     interpret = run_experiment(
         "../versions/no_trace", "{}.class".format(program), runs)
@@ -58,8 +58,6 @@ def run_experiments(program, runs=5):
     traces, bytesWritten = get_trace_info(program)
     return interpret, tracing, java, traces, bytesWritten
 
-
-# tests = ["ChineseRemainder"]
 
 tests = ["TwoHotSideExits", "EvenMoreLoops", "SingleLoop",
          "ChineseRemainder", "Factorial", "IsPrime", "LongFibonacci",

@@ -2,7 +2,8 @@ public class ChineseRemainder {
   public static long mul_inv(int a, int b) {
     int b0 = b, t, q;
     int x0 = 0, x1 = 1;
-    if (b == 1) return 1;
+    if (b == 1)
+      return 1;
     while (a > 1) {
       q = a / b;
       t = b;
@@ -12,7 +13,8 @@ public class ChineseRemainder {
       x0 = x1 - q * x0;
       x1 = t;
     }
-    if (x1 < 0) x1 += b0;
+    if (x1 < 0)
+      x1 += b0;
     return x1;
   }
   public static int chinese_remainder(int n1, int n2, int n3, int a1, int a2, int a3) {

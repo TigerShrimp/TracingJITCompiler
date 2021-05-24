@@ -1,8 +1,8 @@
 public class EvenMoreLoops {
   public static void main(String[] args) {
     int a = 1;
-    int i = 0, j = 0, k = 0, l = 0, m = 0, n = 0, o = 0, p = 0, 
-        q = 0, r = 0, s = 0, t = 0, u = 0, v = 0, w = 0;
+    int i = 0, j = 0, k = 0, l = 0, m = 0, n = 0, o = 0, p = 0, q = 0, r = 0, s = 0, t = 0, u = 0,
+        v = 0, w = 0;
     for (; i < 4; i++) {
       a += i;
     }
@@ -46,7 +46,7 @@ public class EvenMoreLoops {
       a += i + j + k + l + m + n + o + p + q + r + s + t + u + v;
     }
     for (; w < 4; w++) {
-      a += i + j + k + l + m + n + o + p + q + r + s + t + u+v+w;
+      a += i + j + k + l + m + n + o + p + q + r + s + t + u + v + w;
     }
     System.out.println(a);
   }
